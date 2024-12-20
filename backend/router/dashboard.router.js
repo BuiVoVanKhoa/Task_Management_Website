@@ -1,23 +1,23 @@
 import express from 'express';
-import {
+import { auth } from '../middleware/auth.middleware.js';
+import { 
     getUserDashboard,
     updateDashboard,
     getDashboardData,
     addWidget,
     removeWidget
 } from '../controllers/dashboard.controllers.js';
-import protectRoute from '../middleware/protectRoute.js';
 
 const router = express.Router();
 
-// Tất cả các routes đều cần xác thực
-router.use(protectRoute);
+// Áp dụng middleware auth cho tất cả các route
+router.use(auth);
 
-// Routes cho dashboard
-router.get("/", getUserDashboard);
-router.get("/data", getDashboardData);
-router.patch("/update", updateDashboard);
-router.post("/widgets", addWidget);
-router.delete("/widgets/:widgetId", removeWidget);
+// Dashboard routes
+router.get('/', getUserDashboard);
+router.get('/data', getDashboardData);
+router.put('/', updateDashboard);
+router.post('/widgets', addWidget);
+router.delete('/widgets/:widgetId', removeWidget);
 
 export default router;

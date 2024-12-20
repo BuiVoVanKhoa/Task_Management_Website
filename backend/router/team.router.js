@@ -1,23 +1,23 @@
 import express from 'express';
-import {
+import { auth } from '../middleware/auth.middleware.js';
+import { 
     createTeam,
     getTeam,
+    updateTeam,
     addTeamMember,
-    removeTeamMember,
-    updateTeam
+    removeTeamMember
 } from '../controllers/team.controllers.js';
-import protectRoute from '../middleware/protectRoute.js';
 
 const router = express.Router();
 
-// Tất cả các routes đều cần xác thực
-router.use(protectRoute);
+// Áp dụng middleware auth cho tất cả các route
+router.use(auth);
 
-// Routes cho team
-router.post("/create", createTeam);
-router.get("/:teamId", getTeam);
-router.post("/:teamId/members", addTeamMember);
-router.delete("/:teamId/members/:userId", removeTeamMember);
-router.patch("/:teamId", updateTeam);
+// Team routes
+router.post('/', createTeam);
+router.get('/:teamId', getTeam);
+router.put('/:teamId', updateTeam);
+router.post('/:teamId/members', addTeamMember);
+router.delete('/:teamId/members/:userId', removeTeamMember);
 
 export default router;

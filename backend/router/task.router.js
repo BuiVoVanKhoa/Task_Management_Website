@@ -11,12 +11,12 @@ import {
     addTaskComment,  // Thêm comment vào task
     deleteTask       // Xóa task
 } from '../controllers/task.controllers.js';
-import protectRoute from '../middleware/protectRoute.js';
+import { auth } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// Áp dụng middleware bảo vệ cho tất cả routes
-router.use(protectRoute);
+// Áp dụng middleware auth cho tất cả các route
+router.use(auth);
 
 /**
  * POST /api/tasks/create
