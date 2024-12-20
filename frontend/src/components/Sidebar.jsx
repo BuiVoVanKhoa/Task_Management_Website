@@ -1,35 +1,54 @@
 import React from 'react';
-import { MdDashboard, MdAssignment, MdSettings, MdGroup, MdLogin } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { MdDashboard, MdOutlineAddTask } from 'react-icons/md';
+import { FaTasks, FaUser } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
-    <div className="w-64 min-h-screen bg-gray-800 text-white p-4 flex flex-col">
-      <div className="text-3xl font-extrabold mb-8 flex items-center justify-center">
-        <span className="bg-gradient-to-r from-green-400 via-blue-500 to-green-500 text-transparent bg-clip-text">
-          Task Me
-        </span>
+    <>
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 w-60 h-screen bg-gray-900 shadow-md transform transition-transform duration-300 z-20 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 md:relative`}
+      >
+        <h1 className='flex gap-2 items-center p-4 shadow-sm'>
+          <div className='bg-blue-600 p-2 rounded-full'>
+            <MdOutlineAddTask className='text-white text-2xl font-black' />
+          </div>
+          <span className='text-2xl font-bold text-white'>TaskMe</span>
+        </h1>
+
+        <div className='flex-1 flex flex-col py-6'>
+          <ul className='space-y-4'>
+            <li className="hover:bg-blue-700 p-2 rounded flex items-center">
+              <MdDashboard className="mr-3 text-white ms-1" />
+              <Link to="/dashboard" className="text-white" onClick={toggleSidebar}>Dashboard</Link>
+            </li>
+            <li className="hover:bg-blue-700 p-2 rounded flex items-center">
+              <FaTasks className="mr-3 text-white ms-1" />
+              <Link to="/tasks" className="text-white" onClick={toggleSidebar}>Tasks</Link>
+            </li>
+            <li className="hover:bg-blue-700 p-2 rounded flex items-center">
+              <FaUser className="mr-3 text-white ms-1" />
+              <Link to="/teams" className="text-white" onClick={toggleSidebar}>Teams</Link>
+            </li>
+          </ul>
+        </div>
+
+        <div className="text-sm text-gray-400 mt-auto p-4 border-t">
+          <p>© 2024 Task Manager</p>
+        </div>
       </div>
 
-      <ul className="flex-1">
-        <li className="mb-4 hover:bg-gray-700 p-2 rounded flex items-center">
-          <MdDashboard className="mr-3" />
-          <Link to="./Dashboard">Dashboard</Link>
-        </li>
-        <li className="mb-4 hover:bg-gray-700 p-2 rounded flex items-center">
-          <MdAssignment className="mr-3" />
-          <Link to="./TaskList">Tasks</Link>
-        </li>
-        <li className="mb-4 hover:bg-gray-700 p-2 rounded flex items-center">
-          <MdGroup className="mr-3" />
-          <Link to="/Team">Team</Link>
-        </li>
-      </ul>
-
-      <div className="mt-auto text-sm text-gray-400">
-        <p>© 2024 Task Manager</p>
-      </div>
-    </div>
+      {/* Overlay for Mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 md:hidden z-10"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+    </>
   );
 };
 
