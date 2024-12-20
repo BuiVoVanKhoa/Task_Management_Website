@@ -24,7 +24,7 @@ const taskSchema = new mongoose.Schema({
         default: 'medium'
     },
     assignedTo: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId, // trở tới id của một tài liệu khác, thường được sử dụng để tạo quan hệ giữa các tài liệu
         ref: 'User',
         required: true
     },
@@ -52,7 +52,7 @@ const taskSchema = new mongoose.Schema({
         }
     }]
 }, {
-    timestamps: true
+    timestamps: true // Tự động thêm các trường createAt và updateAt
 });
 
 export default mongoose.model('Task', taskSchema);

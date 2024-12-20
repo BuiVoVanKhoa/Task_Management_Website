@@ -1,26 +1,33 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import Team from './pages/Team';
+import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Task from './pages/Task';
-import Header from './components/Header';
+import Team from './pages/Team';
 
 const App = () => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <Router>
-      <div className="flex">
-        <Sidebar />
-        <div className="flex-1 p-6">
+    <div className="flex">
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div className="flex-1">
+        <Navbar toggleSidebar={toggleSidebar} />
+        <div className="p-4">
           <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/task" element={<Task />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/Header" element={<Header />} />
+            <Route path="/tasks" element={<Task />} />
+            <Route path="/teams" element={<Team />} />
           </Routes>
         </div>
       </div>
-    </Router>
+    </div>
   );
 };
 
