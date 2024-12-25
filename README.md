@@ -19,6 +19,7 @@ git add .
 Tiến hành commit các thay đổi:
 
 git commit -m "Đẩy dự án lên với nhánh CuongAFK"
+
 5. Đẩy lên GitHub:
 Đẩy nhánh CuongAFK lên GitHub:
 

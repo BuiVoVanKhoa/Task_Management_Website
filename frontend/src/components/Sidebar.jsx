@@ -1,74 +1,82 @@
+import React from 'react';
+import { MdDashboard, MdOutlineAddTask, MdClose } from 'react-icons/md';
+import { FaTasks, FaUser } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
-import {
-  HomeIcon,
-  ClipboardDocumentListIcon,
-  UserGroupIcon,
-  ChartBarIcon,
-  Cog6ToothIcon,
-} from '@heroicons/react/24/outline';
 
-const navigation = [
-  { name: 'Dashboard', to: '/dashboard', icon: HomeIcon },
-  { name: 'Tasks', to: '/tasks', icon: ClipboardDocumentListIcon },
-  { name: 'Team', to: '/team', icon: UserGroupIcon },
-  { name: 'Reports', to: '/reports', icon: ChartBarIcon },
-  { name: 'Settings', to: '/settings', icon: Cog6ToothIcon },
-];
+const Sidebar = ({ isOpen, toggleSidebar, themeClasses }) => {
+  const navigation = [
+    { name: 'Dashboard', to: '/dashboard', icon: <MdDashboard /> },
+    { name: 'Tasks', to: '/tasks', icon: <FaTasks /> },
+    { name: 'Team', to: '/teams', icon: <FaUser /> },
+  ];
 
-const Sidebar = () => {
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col">
-      <div className="flex flex-col flex-grow pt-5 bg-white dark:bg-gray-800 overflow-y-auto transition-colors duration-200">
-        <div className="flex-grow flex flex-col">
-          <nav className="flex-1 px-2 pb-4 space-y-1">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.to}
-                className={({ isActive }) =>
-                  `group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                    isActive
-                      ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <item.icon
-                      className={`mr-3 flex-shrink-0 h-6 w-6 ${
-                        isActive
-                          ? 'text-blue-600 dark:text-blue-200'
-                          : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-300 dark:group-hover:text-white'
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {item.name}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 w-[280px] shadow-lg z-40
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0 md:w-60 md:flex-shrink-0
+          ${themeClasses.sidebar}`}
+      >
+        {/* Header with Logo and Close Button */}
+        <div className={`h-16 flex items-center justify-between px-4 border-b ${themeClasses.borders}`}>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="bg-blue-600 p-2 rounded-full">
+              <MdOutlineAddTask className="text-white text-2xl" />
+            </div>
+            <span className="text-xl font-bold">TaskMe</span>
+          </Link>
+          
+          {/* Close button - Only visible on mobile */}
+          <button
+            onClick={toggleSidebar}
+            className={`p-2 rounded-md md:hidden ${themeClasses.menuItem.inactive}`}
+          >
+            <MdClose className="h-6 w-6" />
+          </button>
         </div>
 
-        {/* Team Section */}
-        <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center">
-            <div>
-              <img
-                className="inline-block h-9 w-9 rounded-full"
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                alt=""
-              />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700 dark:text-white">Tom Cook</p>
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">View profile</p>
-            </div>
-          </div>
+        {/* Navigation Links */}
+        <nav className="mt-4 px-2 space-y-1 overflow-y-auto max-h-[calc(100vh-4rem)]">
+          {navigation.map((item) => (
+            <NavLink
+              key={item.name}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                ${isActive ? themeClasses.menuItem.active : themeClasses.menuItem.inactive}`
+              }
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  toggleSidebar();
+                }
+              }}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span>{item.name}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className={`absolute bottom-0 w-full p-4 border-t ${themeClasses.borders}`}>
+          <p className="text-sm text-gray-500 text-center">
+            2024 TaskMe
+          </p>
         </div>
-      </div>
-    </div>
+      </aside>
+    </>
   );
 };
 

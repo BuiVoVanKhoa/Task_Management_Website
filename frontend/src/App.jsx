@@ -19,7 +19,7 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-100 transition-colors duration-200">
           <Toaster position="top-center" />
           <Routes>
             {/* Public Routes */}
@@ -32,7 +32,7 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
-                <Route path="/team" element={<TeamPage />} />
+                <Route path="/teams" element={<TeamPage />} />
               </Route>
             </Route>
 

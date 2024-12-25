@@ -1,163 +1,119 @@
-import { useState, useEffect } from 'react';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from "react"; // Hook useState và useEffect
+import Loading from "../components/Loading"; // Component Loader hiển thị khi tải
+import Title from "../components/Title"; // Component Title
+import Tabs from "../components/Tabs"; // Component Tabs
+import { IoMdAdd } from 'react-icons/io'; // Icon thêm mới
+import { MdGridView } from 'react-icons/md'; // Icon hiển thị bảng trello
+import { FaList } from 'react-icons/fa'; // Icon hiển thị danh sách
+import { useParams } from "react-router-dom"; // Hook để lấy tham số từ URL
+import TaskTitle from "../components/TaskTitle";
+import BoardView from "../components/BoardView";
+import AddTask from "../components/AddTask";
+import Table from "../components/task/Table";
 
-const TasksPage = () => {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+const TABS = [
+  {
+    title: "Board View", icon: <MdGridView />
+  },
+  {
+    title: "List View", icon: <FaList />
+  }
+];
 
+const TASK_TYPE = {
+  todo: "bg-blue-600",
+  "in progress": "bg-yellow-600",
+  completed: "bg-green-600",
+};
+
+const Tasks = () => {
+  const [selected, setSelected] = useState(0);
+  const [tasks, setTasks] = useState([]); // Danh sách tasks
+  const [loading, setLoading] = useState(true); // Trạng thái tải dữ liệu
+  const [showAddTask, setShowAddTask] = useState(false);
+  const params = useParams(); // Lấy tham số từ URL
+  const status = params?.status || "";
+
+  // Fetch task data
   useEffect(() => {
-    fetchTasks();
+    const fetchUserTasks = async () => {
+      try {
+        const response = await fetch('/api/tasks/user-tasks', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setTasks(data.data);  
+        } else {
+          console.error(data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching user tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserTasks();
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch('/api/tasks/user-tasks', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        setTasks(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStatusChange = async (taskId, newStatus) => {
-    try {
-      const response = await fetch(`/api/tasks/${taskId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setTasks(tasks.map(task => 
-          task._id === taskId ? { ...task, status: newStatus } : task
-        ));
-      }
-    } catch (error) {
-      console.error('Error updating task status:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  // Nếu đang tải dữ liệu, hiển thị Loader
+  return loading ? (
+    <div className="flex items-center justify-center h-full mt-64"> {/* Sử dụng h-full để chiếm chiều cao của sidebar */}
+      <div className="text-center">
+        <Loading /> {/* Loader hiển thị */}
       </div>
-    );
-  }
-
-  return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Tasks</h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          New Task
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Todo Column */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">To Do</h2>
-          <div className="space-y-4">
-            {tasks
-              .filter(task => task.status === 'todo')
-              .map(task => (
-                <TaskCard
-                  key={task._id}
-                  task={task}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-          </div>
-        </div>
-
-        {/* In Progress Column */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">In Progress</h2>
-          <div className="space-y-4">
-            {tasks
-              .filter(task => task.status === 'inprogress')
-              .map(task => (
-                <TaskCard
-                  key={task._id}
-                  task={task}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-          </div>
-        </div>
-
-        {/* Completed Column */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Completed</h2>
-          <div className="space-y-4">
-            {tasks
-              .filter(task => task.status === 'completed')
-              .map(task => (
-                <TaskCard
-                  key={task._id}
-                  task={task}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Create Task Modal would go here */}
     </div>
-  );
-};
-
-const TaskCard = ({ task, onStatusChange }) => {
-  const priorityColors = {
-    low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-  };
-
-  return (
-    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</h3>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority]}`}>
-          {task.priority}
-        </span>
+  ) : (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-4">
+        <Title title={status ? `${status} Tasks` : "Tasks"} />
+        {!status && (
+          <button
+            onClick={() => setShowAddTask(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <IoMdAdd className="h-5 w-5 mr-2" />
+            Creat Task
+          </button>
+        )}
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{task.description}</p>
-      <div className="flex justify-between items-center">
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          Due: {new Date(task.dueDate).toLocaleDateString()}
-        </span>
-        <select
-          value={task.status}
-          onChange={(e) => onStatusChange(task._id, e.target.value)}
-          className="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        >
-          <option value="todo">To Do</option>
-          <option value="inprogress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
+
+      {/* Hiển thị form thêm Task */}
+      {showAddTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 overflow-y-auto max-h-[90vh]">
+            <AddTask onClose={() => setShowAddTask(false)} /> {/* Đóng form khi nhấn */}
+          </div>
+        </div>
+      )}
+
+      <div>
+        {/* Truyền chế độ xem */}
+        <Tabs tabs={TABS} setSelected={setSelected}>
+          {!status && (
+            <div className="w-full flex justify-between gap-4 md:gap-x-12 py-4">
+              <TaskTitle lable="To Do" className={TASK_TYPE.todo} />
+              <TaskTitle lable="In Progress" className={TASK_TYPE['in progress']} />
+              <TaskTitle lable="Completed" className={TASK_TYPE.completed} />
+            </div>
+          )}
+
+          {/* Hiển thị nội dung dựa trên tab được chọn */}
+          {selected === 0 ? (
+            <BoardView tasks={tasks} />
+          ) : (
+            <div className="w-full">
+              <Table tasks={tasks} />
+            </div>
+          )}
+        </Tabs>
       </div>
     </div>
   );
 };
 
-export default TasksPage;
+export default Tasks;

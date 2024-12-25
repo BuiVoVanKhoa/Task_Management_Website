@@ -29,7 +29,14 @@ const teamSchema = new mongoose.Schema({
         }
     }],
     avatar: {
-        type: String // URL to team avatar
+        type: String,
+        default: "https://via.placeholder.com/150"
+    },
+    teamCode: {
+        type: String,
+        default: function() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
     },
     isActive: {
         type: Boolean,
@@ -38,5 +45,8 @@ const teamSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// Tạo index cho teamCode
+teamSchema.index({ teamCode: 1 }, { unique: true });
 
 export default mongoose.model('Team', teamSchema);

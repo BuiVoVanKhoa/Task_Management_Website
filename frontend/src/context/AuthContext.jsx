@@ -13,20 +13,10 @@ export const AuthContextProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      setIsAuthenticated(false);
-      setAuthUser(null);
-      return;
-    }
-
     try {
       const response = await fetch('/api/auth/verify', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
       const data = await response.json();
 
@@ -34,17 +24,14 @@ export const AuthContextProvider = ({ children }) => {
         setAuthUser(data.user);
         setIsAuthenticated(true);
       } else {
-        // Token không hợp lệ hoặc hết hạn
-        localStorage.removeItem('token');
         setAuthUser(null);
         setIsAuthenticated(false);
-        if (data.message === "Token has expired") {
+        if (data.message === "Token expired") {
           toast.error('Your session has expired. Please login again.');
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
-      localStorage.removeItem('token');
       setAuthUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -52,72 +39,31 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   const login = async (email, password) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('token', data.token);
         setAuthUser(data.user);
         setIsAuthenticated(true);
-        toast.success('Logged in successfully');
+        toast.success('Login successful!');
         return true;
       } else {
-        setAuthUser(null);
-        setIsAuthenticated(false);
         toast.error(data.message || 'Login failed');
         return false;
       }
     } catch (error) {
       console.error('Login error:', error);
-      setAuthUser(null);
-      setIsAuthenticated(false);
-      toast.error('Login failed');
-      return false;
-    }
-  };
-
-  const register = async (username, email, password, gender) => {
-    try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, email, password, gender })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        localStorage.setItem('token', data.token);
-        setAuthUser(data.user);
-        setIsAuthenticated(true);
-        toast.success('Registered successfully');
-        return true;
-      } else {
-        setAuthUser(null);
-        setIsAuthenticated(false);
-        toast.error(data.message || 'Registration failed');
-        return false;
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setAuthUser(null);
-      setIsAuthenticated(false);
-      toast.error('Registration failed');
+      toast.error('An error occurred during login');
       return false;
     }
   };
@@ -125,12 +71,12 @@ export const AuthContextProvider = ({ children }) => {
   const logout = async () => {
     try {
       const response = await fetch('/api/auth/logout', {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include'
       });
       const data = await response.json();
-      
+
       if (data.success) {
-        localStorage.removeItem('token');
         setAuthUser(null);
         setIsAuthenticated(false);
         toast.success('Logged out successfully');
@@ -141,18 +87,52 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
-  const value = {
+  const signup = async (userData) => {
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(userData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAuthUser(data.user);
+        setIsAuthenticated(true);
+        toast.success('Signup successful!');
+        return true;
+      } else {
+        toast.error(data.message || 'Signup failed');
+        return false;
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast.error('An error occurred during signup');
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const contextValue = {
     authUser,
+    setAuthUser,
     loading,
     isAuthenticated,
     login,
-    register,
     logout,
+    signup,
     checkAuth
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

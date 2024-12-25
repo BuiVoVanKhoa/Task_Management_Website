@@ -46,92 +46,152 @@ export const signup = async (req, res) => {
         // Generate token
         const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
         
+        // Set token as cookie
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
         res.status(201).json({ 
             success: true, 
-            user: newUser,
-            token: token 
+            user: {
+                _id: newUser._id,
+                username: newUser.username,
+                email: newUser.email,
+                avatarUrl: newUser.avatarUrl,
+                role: newUser.role
+            }
         });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: "Server Error" });
+        console.error('Signup error:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error creating user"
+        });
     }
 };
 
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        // Kiểm tra email và password
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide email and password"
+            });
+        }
+
+        // Tìm user theo email
         const user = await User.findOne({ email });
-    
         if (!user) {
-          return res.status(400).json({ success: false, message: "User not found" });
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
         }
-    
+
+        // Kiểm tra password
         const isMatch = await bcrypt.compare(password, user.password);
-    
         if (!isMatch) {
-          return res.status(400).json({ success: false, message: "Invalid credentials" });
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
         }
-    
+
+        // Tạo token
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        
-        res.status(200).json({ 
-            success: true, 
-            user,
-            token: token 
+
+        // Set token as cookie
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
-      } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: "Server Error" });
-      }
-}
+
+        res.json({
+            success: true,
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                avatarUrl: user.avatarUrl,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error logging in"
+        });
+    }
+};
 
 export const logout = async (req, res) => {
     try {
-        res.status(200).json({success: true, message: "Logout successfully"})
+        res.clearCookie('jwt');
+        res.json({
+            success: true,
+            message: "Logged out successfully"
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({success: false, message: "Server Error"})
+        res.status(500).json({
+            success: false,
+            message: "Error logging out"
+        });
     }
-}
+};
 
 export const verifyToken = async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: "No token provided"
-      });
-    }
-
-    const token = authHeader.split(' ')[1];
-    
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId).select("-password");
-      
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "User not found"
-        });
-      }
+        const token = req.cookies.jwt;
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "No token provided"
+            });
+        }
 
-      res.status(200).json({
-        success: true,
-        user
-      });
-    } catch (jwtError) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid token"
-      });
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Get user from database
+        const user = await User.findById(decoded.userId).select('-password');
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            user: {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                avatarUrl: user.avatarUrl,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            res.status(401).json({
+                success: false,
+                message: "Token expired"
+            });
+        } else {
+            console.error('Token verification error:', error);
+            res.status(401).json({
+                success: false,
+                message: "Invalid token"
+            });
+        }
     }
-  } catch (error) {
-    console.error("Error in verifyToken:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error"
-    });
-  }
 };
