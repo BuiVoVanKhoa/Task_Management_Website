@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
   const themeClasses = {
     navbar: `${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`,
     sidebar: `${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`,
-    mainContent: `${darkMode ? 'bg-gray-200' : 'bg-gray-100'}`,
+    mainContent: `${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`,
     borders: `${darkMode ? 'border-gray-700' : 'border-gray-200'}`,
     menuItem: {
       active: 'bg-blue-600 text-white',

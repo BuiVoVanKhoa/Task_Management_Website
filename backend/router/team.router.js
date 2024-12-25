@@ -10,6 +10,7 @@ import {
     getTeams
 } from '../controllers/team.controllers.js';
 import Team from '../models/team.models.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -19,12 +20,18 @@ router.use(auth);
 // Reset database route - CHỈ DÙNG TRONG DEVELOPMENT
 router.post('/reset-db', async (req, res) => {
     try {
-        // Xóa tất cả documents trong collection teams
-        await Team.deleteMany({});
+        // Xóa collection teams
+        await mongoose.connection.collection('teams').drop();
         
+        // Xóa tất cả indexes
+        await mongoose.connection.collection('teams').dropIndexes();
+        
+        // Tạo lại index mới cho teamCode
+        await mongoose.connection.collection('teams').createIndex({ teamCode: 1 }, { unique: true });
+
         res.status(200).json({
             success: true,
-            message: 'Database reset successfully'
+            message: 'Database and indexes reset successfully'
         });
     } catch (error) {
         console.error('Reset database error:', error);

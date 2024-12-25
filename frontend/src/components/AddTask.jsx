@@ -16,21 +16,18 @@ const AddTask = ({ onClose }) => {
     const navigate = useNavigate();
     const { authUser } = useAuthContext();
 
-    // Kiểm tra xem token có tồn tại không
     const token = localStorage.getItem('token');
     if (!authUser || !token) {
         console.error('Token xác thực không hợp lệ hoặc không tồn tại');
-        return; // Ngừng thực hiện nếu không có token
+        return;
     }
 
-    // Hàm xử lý gửi form
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Kiểm tra ngày
         const selectedDate = new Date(dueDate);
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day
+        today.setHours(0, 0, 0, 0);
 
         if (selectedDate < today) {
             toast.error('Due date must be today or a future date');
@@ -63,7 +60,7 @@ const AddTask = ({ onClose }) => {
                 const result = await response.json();
                 console.log('Task created successfully:', result);
                 toast.success('Task created successfully!');
-                onClose(); // Đóng form sau khi tạo thành công
+                onClose();
             } else {
                 const errorData = await response.json();
                 toast.error(errorData.message || 'Failed to create task');
@@ -76,47 +73,46 @@ const AddTask = ({ onClose }) => {
         }
     };
 
-    // Hàm xử lý thay đổi file
     const handleFileChange = (e) => {
         setAssets(e.target.files[0]);
     };
 
     return (
         <div className="p-6">
-            <div className="flex justify-center items-center mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-gray-800">Add New Task</h2>
+            <div className="flex justify-center items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Add New Task</h2>
             </div>
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
                     <input
                         type="text"
                         name="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         required
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                     <textarea
                         name="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         required
                         rows="3"
                     ></textarea>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Assign Task To</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assign Task To</label>
                     <select
                         name="assignedTo"
                         value={assignedTo}
                         onChange={(e) => setAssignedTo(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         required
                     >
                         <option value="">Select Team Member</option>
@@ -127,12 +123,12 @@ const AddTask = ({ onClose }) => {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Task Stage</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Stage</label>
                         <select
                             name="stage"
                             value={stage}
                             onChange={(e) => setStage(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         >
                             <option value="todo">To Do</option>
                             <option value="in progress">In Progress</option>
@@ -140,25 +136,25 @@ const AddTask = ({ onClose }) => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
                         <input
                             type="date"
                             name="dueDate"
                             value={dueDate}
                             onChange={(e) => setDueDate(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                             required
                         />
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority Level</label>
                         <select
                             name="priority"
                             value={priority}
                             onChange={(e) => setPriority(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                         >
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
@@ -166,27 +162,30 @@ const AddTask = ({ onClose }) => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Add Assets</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Assets</label>
                         <input
                             type="file"
                             name="assets"
                             onChange={handleFileChange}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
+                            file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold
+                            file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300
+                            hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
                         />
                     </div>
                 </div>
-                <div className="flex justify-end space-x-4 pt-4 border-t">
+                <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+                        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-blue-300 dark:disabled:bg-blue-400 transition-colors"
                     >
                         {loading ? 'Creating...' : 'Create Task'}
                     </button>

@@ -14,15 +14,15 @@ const ICONS = {
 }
 
 const PRIOTITYSTYELS = {
-    low: "text-blue-600",
-    medium: "text-yellow-500",
-    high: "text-red-500"
+    low: "text-blue-600 dark:text-blue-400",
+    medium: "text-yellow-500 dark:text-yellow-400",
+    high: "text-red-500 dark:text-red-400"
 }
 
 const TASK_TYPE = {
-    todo: "bg-blue-600",
-    "in progress": "bg-yellow-600",
-    completed: "bg-green-600",
+    todo: "bg-blue-600 dark:bg-blue-500",
+    "in progress": "bg-yellow-600 dark:bg-yellow-500",
+    completed: "bg-green-600 dark:bg-green-500",
 }
 
 const BGS = [
@@ -41,8 +41,7 @@ const TaskCard = ({ task }) => {
     const [open, setOpen] = useState(false);
 
     return (
-
-        <div className='w-full h-fit bg-white shadow-md p-4 rounded'>
+        <div className='w-full h-fit bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700/20 p-4 rounded'>
             <div className='w-full flex justify-between'>
                 <div className={clsx(
                     "flex flex-1 gap-1 items-center text-sm font-medium",
@@ -58,37 +57,37 @@ const TaskCard = ({ task }) => {
             <div>
                 <div className='flex items-center gap-2'>
                     <div className={clsx('w-4 h-4 rounded-full', TASK_TYPE[task.status])} />
-                    <h4 className='line-clamp-1 text-black'>{task?.title}</h4>
+                    <h4 className='line-clamp-1 text-gray-900 dark:text-gray-100'>{task?.title}</h4>
                 </div>
 
-                <p className='text-sm text-gray-600 line-clamp-2'>
+                <p className='text-sm text-gray-600 dark:text-gray-400 line-clamp-2'>
                     <span className='font-semibold mr-1'>
                         Assign Task To:
                     </span>
                     {task?.assignedTo?.username}
                 </p>
 
-                <p className='text-sm text-gray-600 line-clamp-2'>
+                <p className='text-sm text-gray-600 dark:text-gray-400 line-clamp-2'>
                     <span className='font-semibold mr-1'>
                         Description:
                     </span>
                     {task?.description}
                 </p>
 
-                <span className='text-sm text-gray-600'>
+                <span className='text-sm text-gray-600 dark:text-gray-400'>
                     {new Date(task?.dueDate).toLocaleDateString()}
                 </span>
             </div>
 
-            <div className='w-full border-t border-gray-300 my-2' />
+            <div className='w-full border-t border-gray-300 dark:border-gray-600 my-2' />
 
             <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-3'>
-                    <div className='flex gap-1 items-center text-sm text-gray-600'>
+                    <div className='flex gap-1 items-center text-sm text-gray-600 dark:text-gray-400'>
                         <BiMessageAltDetail />
                         <span>{task?.comments?.length}</span>
                     </div>
-                    <div className='flex gap-1 items-center text-sm text-gray-600'>
+                    <div className='flex gap-1 items-center text-sm text-gray-600 dark:text-gray-400'>
                         <MdAttachFile />
                         <span>{task?.attachments?.length}</span>
                     </div>
@@ -98,7 +97,7 @@ const TaskCard = ({ task }) => {
                     {task?.assignedTo && (
                         <div
                             className={clsx(
-                                'w-8 h-8 rounded-full text-white flex items-center justify-center text-sm border-2 border-white overflow-hidden',
+                                'w-8 h-8 rounded-full text-white flex items-center justify-center text-sm border-2 border-white dark:border-gray-700 overflow-hidden',
                                 BGS[0]
                             )}
                         >
@@ -111,4 +110,4 @@ const TaskCard = ({ task }) => {
     )
 }
 
-export default TaskCard
+export default TaskCard;
