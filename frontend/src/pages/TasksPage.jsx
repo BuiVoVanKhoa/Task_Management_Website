@@ -84,9 +84,11 @@ const Tasks = () => {
 
       {/* Hiển thị form thêm Task */}
       {showAddTask && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 overflow-y-auto max-h-[90vh]">
-            <AddTask onClose={() => setShowAddTask(false)} /> {/* Đóng form khi nhấn */}
+        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-black/40 max-w-2xl w-full mx-4 overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col">
+            <div className="flex-shrink-0">
+              <AddTask onClose={() => setShowAddTask(false)} />
+            </div>
           </div>
         </div>
       )}

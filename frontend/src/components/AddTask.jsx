@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import { IoMdClose } from 'react-icons/io';
+import { FaTasks, FaRegCalendarAlt, FaUserCircle, FaFlag } from 'react-icons/fa';
+import { MdDescription, MdLowPriority, MdOutlinePriorityHigh } from 'react-icons/md';
+import { BsFileEarmarkPlus, BsKanban } from 'react-icons/bs';
+import { AiOutlineClockCircle } from 'react-icons/ai';
 
 const AddTask = ({ onClose }) => {
     const [title, setTitle] = useState('');
@@ -15,12 +20,6 @@ const AddTask = ({ onClose }) => {
 
     const navigate = useNavigate();
     const { authUser } = useAuthContext();
-
-    const token = localStorage.getItem('token');
-    if (!authUser || !token) {
-        console.error('Token xác thực không hợp lệ hoặc không tồn tại');
-        return;
-    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,8 +50,8 @@ const AddTask = ({ onClose }) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
                 },
+                credentials: 'include',
                 body: JSON.stringify(taskData),
             });
 
@@ -78,13 +77,26 @@ const AddTask = ({ onClose }) => {
     };
 
     return (
-        <div className="p-6">
-            <div className="flex justify-center items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Add New Task</h2>
+        <>
+            <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                    <FaTasks className="text-2xl text-blue-500 dark:text-blue-400" />
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Add New Task</h2>
+                </div>
+                <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                >
+                    <IoMdClose className="text-xl text-gray-500 dark:text-gray-400" />
+                </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
+
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <FaTasks className="text-gray-400 dark:text-gray-500" />
+                        Task Title
+                    </label>
                     <input
                         type="text"
                         name="title"
@@ -94,8 +106,12 @@ const AddTask = ({ onClose }) => {
                         required
                     />
                 </div>
+
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <MdDescription className="text-gray-400 dark:text-gray-500" />
+                        Description
+                    </label>
                     <textarea
                         name="description"
                         value={description}
@@ -107,7 +123,10 @@ const AddTask = ({ onClose }) => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assign Task To</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <FaUserCircle className="text-gray-400 dark:text-gray-500" />
+                        Assign Task To
+                    </label>
                     <select
                         name="assignedTo"
                         value={assignedTo}
@@ -123,7 +142,10 @@ const AddTask = ({ onClose }) => {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Stage</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <BsKanban className="text-gray-400 dark:text-gray-500" />
+                            Task Stage
+                        </label>
                         <select
                             name="stage"
                             value={stage}
@@ -136,7 +158,10 @@ const AddTask = ({ onClose }) => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <FaRegCalendarAlt className="text-gray-400 dark:text-gray-500" />
+                            Due Date
+                        </label>
                         <input
                             type="date"
                             name="dueDate"
@@ -147,22 +172,36 @@ const AddTask = ({ onClose }) => {
                         />
                     </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority Level</label>
-                        <select
-                            name="priority"
-                            value={priority}
-                            onChange={(e) => setPriority(e.target.value)}
-                            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                        >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <FaFlag className="text-gray-400 dark:text-gray-500" />
+                            Priority Level
+                        </label>
+                        <div className="relative">
+                            <select
+                                name="priority"
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 pl-9"
+                            >
+                                <option value="low">Low Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="high">High Priority</option>
+                            </select>
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                {priority === 'low' && <MdLowPriority className="text-blue-500" />}
+                                {priority === 'medium' && <FaFlag className="text-yellow-500" />}
+                                {priority === 'high' && <MdOutlinePriorityHigh className="text-red-500" />}
+                            </div>
+                        </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Assets</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                            <BsFileEarmarkPlus className="text-gray-400 dark:text-gray-500" />
+                            Add Assets
+                        </label>
                         <input
                             type="file"
                             name="assets"
@@ -172,8 +211,14 @@ const AddTask = ({ onClose }) => {
                             file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300
                             hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
                         />
+                        {assets && (
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                Selected file: {assets.name}
+                            </p>
+                        )}
                     </div>
                 </div>
+
                 <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                         type="button"
@@ -185,13 +230,23 @@ const AddTask = ({ onClose }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-blue-300 dark:disabled:bg-blue-400 transition-colors"
+                        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-blue-300 dark:disabled:bg-blue-400 transition-colors inline-flex items-center gap-2"
                     >
-                        {loading ? 'Creating...' : 'Create Task'}
+                        {loading ? (
+                            <>
+                                <AiOutlineClockCircle className="animate-spin" />
+                                Creating...
+                            </>
+                        ) : (
+                            <>
+                                <FaTasks />
+                                Create Task
+                            </>
+                        )}
                     </button>
                 </div>
             </form>
-        </div>
+        </>
     );
 };
 

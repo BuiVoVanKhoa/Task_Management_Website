@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 // Import icons từ react-icons
-import { FaUsers, FaCrown, FaPlus, FaDoorOpen } from 'react-icons/fa';
+import { FaUsers, FaCrown, FaPlus, FaDoorOpen, FaRegCopy } from 'react-icons/fa';
 import { BsCodeSquare } from 'react-icons/bs';
 import { MdDescription } from 'react-icons/md';
 import { IoMdRefresh } from 'react-icons/io';
+import AvatarPicker from '../components/AvatarPicker';
 
 const TeamPage = () => {
   const { authUser } = useAuthContext();
@@ -16,6 +17,7 @@ const TeamPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    avatar: 'avt-0', // Default avatar
   });
   const [teamCode, setTeamCode] = useState('');
 
@@ -29,9 +31,12 @@ const TeamPage = () => {
         credentials: 'include'
       });
       const data = await response.json();
+      console.log('Fetched teams data:', data);
 
       if (data.success) {
-        setTeams(data.data || []);
+        // Sử dụng teams trực tiếp từ backend
+        console.log('Setting teams with avatars:', data.data);
+        setTeams(data.data);
       } else {
         toast.error(data.message);
       }
@@ -49,37 +54,66 @@ const TeamPage = () => {
 
   const handleCreateTeam = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
+      // Tạo đường dẫn đầy đủ cho avatar
+      const avatarPath = `/avt_group/${formData.avatar || 'avt-0'}.jpg`;
+      
+      const teamData = {
+        name: formData.name,
+        description: formData.description,
+        avatar: avatarPath, // Gửi đường dẫn đầy đủ
+      };
+
+      console.log('Creating team with data:', teamData);
+
       const response = await fetch('/api/teams', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include'
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(teamData),
       });
+
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.success) {
+        // Sử dụng avatar từ response
+        const newTeam = data.data;
+        console.log('New team with avatar:', newTeam);
+        
         toast.success('Team created successfully!');
-        setTeams([...teams, data.data]);
+        setTeams([...teams, newTeam]);
         setShowCreateModal(false);
-        setFormData({ name: '', description: '' });
+        setFormData({ name: '', description: '', avatar: 'avt-0' });
       } else {
-        toast.error(data.message);
+        toast.error(data.message || 'Failed to create team');
       }
     } catch (error) {
       console.error('Error creating team:', error);
-      toast.error('Failed to create team');
+      toast.error('An error occurred while creating the team');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleJoinTeam = async (e) => {
     e.preventDefault();
     try {
+      console.log('Joining team with code:', teamCode);
+
       const response = await fetch(`/api/teams/join/${teamCode}`, {
         method: 'POST',
         credentials: 'include'
       });
+
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.success) {
         toast.success('Successfully joined team!');
@@ -101,7 +135,10 @@ const TeamPage = () => {
         method: 'POST',
         credentials: 'include'
       });
+
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.success) {
         toast.success('Database reset successfully');
@@ -190,6 +227,12 @@ const TeamPage = () => {
               <form onSubmit={handleCreateTeam}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Team Avatar
+                  </label>
+                  <AvatarPicker selectedAvatar={formData.avatar} onSelect={(avatar) => setFormData({ ...formData, avatar })} />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Team Name
                   </label>
                   <input
@@ -218,7 +261,7 @@ const TeamPage = () => {
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false);
-                      setFormData({ name: '', description: '' });
+                      setFormData({ name: '', description: '', avatar: 'avt-0' });
                     }}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
@@ -285,6 +328,28 @@ const TeamPage = () => {
 };
 
 const TeamCard = ({ team }) => {
+  const [showCopied, setShowCopied] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  console.log('Rendering TeamCard with team:', team);
+
+  const handleCopyCode = () => {
+    if (team.teamCode) {
+      navigator.clipboard.writeText(team.teamCode)
+        .then(() => {
+          setShowCopied(true);
+          toast.success('Team code copied!');
+          setTimeout(() => setShowCopied(false), 2000);
+        })
+        .catch(() => {
+          toast.error('Failed to copy team code');
+        });
+    }
+  };
+
+  // Sử dụng avatar trực tiếp từ backend
+  const imgUrl = imgError ? '/avt_group/avt-0.jpg' : team.avatar;
+  console.log('Loading image from:', imgUrl);
+
   return (
     <div className="bg-gray-50 dark:bg-gray-800/50 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
       {/* Header with Team Avatar and Name */}
@@ -293,9 +358,14 @@ const TeamCard = ({ team }) => {
         <div className="absolute -bottom-12 left-6">
           <div className="relative">
             <img
-              className="h-24 w-24 rounded-xl shadow-lg border-4 border-gray-50 dark:border-gray-800"
-              src={team.avatar || "https://via.placeholder.com/150"}
+              className="h-24 w-24 rounded-xl shadow-lg border-4 border-gray-50 dark:border-gray-800 object-cover"
+              src={imgUrl}
               alt={team.name}
+              onError={(e) => {
+                console.log('Image failed to load, URL was:', e.target.src);
+                setImgError(true);
+                e.target.src = '/avt_group/avt-0.jpg';
+              }}
             />
             <div className="absolute -bottom-2 -right-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 text-xs font-bold px-3 py-1 rounded-full shadow flex items-center gap-1">
               <FaUsers className="text-green-600 dark:text-green-400" />
@@ -326,9 +396,19 @@ const TeamCard = ({ team }) => {
               <BsCodeSquare />
               Team Code
             </span>
-            <code className="text-sm font-bold bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 px-4 py-1.5 rounded-md">
-              {team.teamCode || 'N/A'}
-            </code>
+            <div className="flex items-center gap-2">
+              <code className="text-sm font-bold bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 px-4 py-1.5 rounded-md">
+                {team.teamCode || 'N/A'}
+              </code>
+              <button
+                onClick={handleCopyCode}
+                disabled={!team.teamCode}
+                className="flex items-center justify-center w-8 h-8 rounded-md bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-800/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title={showCopied ? 'Copied!' : 'Copy team code'}
+              >
+                <FaRegCopy className={showCopied ? 'text-green-600 dark:text-green-400' : ''} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -340,6 +420,10 @@ const TeamCard = ({ team }) => {
                 className="h-10 w-10 rounded-full border-2 border-indigo-200 dark:border-indigo-700"
                 src={team.leader?.avatarUrl || 'https://via.placeholder.com/40'}
                 alt={team.leader?.username}
+                onError={(e) => {
+                  console.log('Image failed to load:', e);
+                  e.target.src = 'https://via.placeholder.com/40';
+                }}
               />
               <FaCrown className="absolute -top-1 -right-1 text-yellow-400 bg-gray-50 dark:bg-gray-800 rounded-full p-0.5" />
             </div>

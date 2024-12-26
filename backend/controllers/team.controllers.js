@@ -3,12 +3,13 @@ import Team from '../models/team.models.js';
 // Tạo team mới
 export const createTeam = async (req, res) => {
     try {
-        const { name, description } = req.body;
+        const { name, description, avatar } = req.body;
         const leader = req.user._id;
 
         const newTeam = new Team({
             name,
             description,
+            avatar: avatar || '/avt_group/avt-0.jpg',
             leader,
             members: [{
                 user: leader,
@@ -19,6 +20,7 @@ export const createTeam = async (req, res) => {
         console.log('Before save - newTeam:', {
             name: newTeam.name,
             description: newTeam.description,
+            avatar: newTeam.avatar,
             teamCode: newTeam.teamCode
         });
 
@@ -27,6 +29,7 @@ export const createTeam = async (req, res) => {
         console.log('After save - savedTeam:', {
             name: savedTeam.name,
             description: savedTeam.description,
+            avatar: savedTeam.avatar,
             teamCode: savedTeam.teamCode
         });
 
@@ -39,6 +42,7 @@ export const createTeam = async (req, res) => {
         console.log('After populate - populatedTeam:', {
             name: populatedTeam.name,
             description: populatedTeam.description,
+            avatar: populatedTeam.avatar,
             teamCode: populatedTeam.teamCode,
             leader: populatedTeam.leader
         });
@@ -318,16 +322,27 @@ export const getTeams = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        const teams = await Team.find({
+        let teams = await Team.find({
             'members.user': userId
         })
         .select('name description avatar teamCode members leader')
         .populate('leader', 'username avatarUrl')
         .populate('members.user', 'username avatarUrl');
 
+        // Xử lý avatar cho mỗi team
+        teams = teams.map(team => {
+            // Đảm bảo avatar là đường dẫn đầy đủ
+            const avatar = team.avatar?.startsWith('/') ? team.avatar : `/avt_group/${team.avatar || 'avt-0'}.jpg`;
+            return {
+                ...team.toObject(),
+                avatar
+            };
+        });
+
         // Log để kiểm tra
-        console.log('Teams:', teams.map(team => ({
+        console.log('Teams with processed avatars:', teams.map(team => ({
             name: team.name,
+            avatar: team.avatar,
             teamCode: team.teamCode,
             leader: team.leader
         })));

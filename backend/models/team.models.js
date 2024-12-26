@@ -30,7 +30,7 @@ const teamSchema = new mongoose.Schema({
     }],
     avatar: {
         type: String,
-        default: "https://via.placeholder.com/150"
+        default: "/avt_group/avt-0.jpg"
     },
     teamCode: {
         type: String,
