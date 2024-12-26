@@ -93,7 +93,7 @@ const AddTask = ({ onClose }) => {
 
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                         <FaTasks className="text-gray-400 dark:text-gray-500" />
                         Task Title
                     </label>
@@ -108,7 +108,7 @@ const AddTask = ({ onClose }) => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                         <MdDescription className="text-gray-400 dark:text-gray-500" />
                         Description
                     </label>
@@ -123,7 +123,7 @@ const AddTask = ({ onClose }) => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                         <FaUserCircle className="text-gray-400 dark:text-gray-500" />
                         Assign Task To
                     </label>
@@ -142,7 +142,7 @@ const AddTask = ({ onClose }) => {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                             <BsKanban className="text-gray-400 dark:text-gray-500" />
                             Task Stage
                         </label>
@@ -158,7 +158,7 @@ const AddTask = ({ onClose }) => {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                             <FaRegCalendarAlt className="text-gray-400 dark:text-gray-500" />
                             Due Date
                         </label>
@@ -175,7 +175,7 @@ const AddTask = ({ onClose }) => {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                             <FaFlag className="text-gray-400 dark:text-gray-500" />
                             Priority Level
                         </label>
@@ -198,7 +198,7 @@ const AddTask = ({ onClose }) => {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                             <BsFileEarmarkPlus className="text-gray-400 dark:text-gray-500" />
                             Add Assets
                         </label>

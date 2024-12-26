@@ -16,6 +16,7 @@ const Layout = ({ children }) => {
   const themeClasses = {
     navbar: `${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`,
     sidebar: `${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`,
+    mainContent: `${darkMode ? 'bg-gray-600' : 'bg-gray-100'}`,
     borders: `${darkMode ? 'border-gray-700' : 'border-gray-200'}`,
     menuItem: {
       active: 'bg-blue-600 text-white',
@@ -44,7 +45,7 @@ const Layout = ({ children }) => {
 
         {/* Main Content Area */}
         <main
-          className={`flex-1 overflow-y-auto  transition-colors duration-200`}
+          className={`flex-1 overflow-y-auto p-4 ${themeClasses.mainContent} transition-colors duration-200`}
         >
           <div className="container mx-auto">
             <Outlet />
