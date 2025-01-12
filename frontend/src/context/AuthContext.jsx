@@ -1,17 +1,22 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
+// Tạo context cho việc quản lý xác thực
 const AuthContext = createContext();
 
+// Hook tùy chỉnh để sử dụng AuthContext
 export const useAuthContext = () => {
   return useContext(AuthContext);
 };
 
+// Provider component để quản lý trạng thái xác thực
 export const AuthContextProvider = ({ children }) => {
+  // Các state quản lý thông tin người dùng và trạng thái xác thực
   const [authUser, setAuthUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Hàm kiểm tra trạng thái xác thực của người dùng
   const checkAuth = async () => {
     try {
       const response = await fetch('/api/auth/verify', {
@@ -39,6 +44,7 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
+  // Hàm xử lý đăng nhập
   const login = async (email, password) => {
     try {
       const response = await fetch('/api/auth/login', {
@@ -55,8 +61,7 @@ export const AuthContextProvider = ({ children }) => {
       if (data.success) {
         setAuthUser(data.user);
         setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.token);
+        setUserToLocalStorage(data.user);
         toast.success('Login successful!');
         return true;
       } else {
@@ -70,6 +75,7 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
+  // Hàm xử lý đăng xuất
   const logout = async () => {
     try {
       const response = await fetch('/api/auth/logout', {
@@ -82,7 +88,6 @@ export const AuthContextProvider = ({ children }) => {
         setAuthUser(null);
         setIsAuthenticated(false);
         localStorage.removeItem('user');
-        localStorage.removeItem('token');
         toast.success('Logged out successfully');
       }
     } catch (error) {
@@ -91,6 +96,7 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
+  // Hàm xử lý đăng ký tài khoản mới
   const signup = async (userData) => {
     try {
       const response = await fetch('/api/auth/signup', {
@@ -107,6 +113,7 @@ export const AuthContextProvider = ({ children }) => {
       if (data.success) {
         setAuthUser(data.user);
         setIsAuthenticated(true);
+        setUserToLocalStorage(data.user);
         toast.success('Signup successful!');
         return true;
       } else {
@@ -120,10 +127,26 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
+  // Hàm lưu thông tin người dùng vào localStorage
+  const setUserToLocalStorage = (userData) => {
+    const userToStore = {
+      _id: userData._id,
+      username: userData.username,
+      email: userData.email,
+      role: userData.role,
+      gender: userData.gender,
+      avatarUrl: userData.avatarUrl,
+      createdAt: userData.createdAt
+    };
+    localStorage.setItem('user', JSON.stringify(userToStore));
+  };
+
+  // Effect hook để kiểm tra xác thực khi component được mount
   useEffect(() => {
     checkAuth();
   }, []);
 
+  // Giá trị context được cung cấp cho các component con
   const contextValue = {
     authUser,
     setAuthUser,

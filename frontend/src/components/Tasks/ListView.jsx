@@ -34,6 +34,7 @@ const ListView = ({ tasks, refetch }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [deletingTask, setDeletingTask] = useState(null);
 
+    // Hàm xử lý xóa nhiệm vụ
     const handleDelete = async () => {
         if (!deletingTask) return;
 
@@ -51,6 +52,7 @@ const ListView = ({ tasks, refetch }) => {
         }
     };
 
+    // Kiểm tra người dùng hiện tại có quyền xóa nhiệm vụ không 
     const canDeleteTask = (task) => {
         return authUser && (task.createdBy._id === authUser._id);
     };

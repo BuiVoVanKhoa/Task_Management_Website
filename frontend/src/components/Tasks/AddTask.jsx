@@ -3,7 +3,6 @@ import { toast } from 'react-hot-toast';
 import { FaTasks, FaRegCalendarAlt, FaUserCircle, FaFlag, FaUsers } from 'react-icons/fa';
 import { MdDescription, MdLowPriority, MdOutlinePriorityHigh } from 'react-icons/md';
 import { BsFileEarmarkPlus, BsKanban } from 'react-icons/bs';
-import { AiOutlineClockCircle } from 'react-icons/ai';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Thư viện dd/mm/yyyy
 import useCUD_TaskData from '../../hooks/useCUD_TaskData';
@@ -39,7 +38,7 @@ const AddTask = ({ onClose }) => {
         if (selectedTeam && team) {
             const currentTeam = team.find(t => t._id === selectedTeam);
             if (currentTeam) {
-                // Filter out admin members and create options for react-select
+                // Lọc ra các thành viên quản trị và tạo tùy chọn cho react-select
                 const nonAdminMembers = currentTeam.members
                     .filter(member => member.role !== 'admin')
                     .map(member => ({
@@ -47,9 +46,9 @@ const AddTask = ({ onClose }) => {
                         label: member.user.username
                     }));
                 setTeamMembers(nonAdminMembers);
-                setAssignedTo([]); // Reset selected members when team changes
+                setAssignedTo([]); // Đặt lại các thành viên đã chọn khi nhóm thay đổi
 
-                // Check if current user is admin of this team
+                // Kiểm tra xem người dùng hiện tại có phải là quản trị viên của nhóm này không
                 const userRole = currentTeam.members.find(
                     member => member.user._id === authUser._id
                 )?.role;
@@ -58,6 +57,7 @@ const AddTask = ({ onClose }) => {
         }
     }, [selectedTeam, team, authUser]);
 
+    // Hàm xử lý ngày hết hạn và định dạng ngày
     const handleDateChange = (date) => {
         if (date) {
             const formattedDate = date.toISOString().split('T')[0];
@@ -67,11 +67,12 @@ const AddTask = ({ onClose }) => {
         }
     };
 
+    // Hàm xử lý tệp đính kèm
     const handleFileChange = async (e) => {
         const files = Array.from(e.target.files);
         const maxSize = 5 * 1024 * 1024; // 5MB
         const newAttachments = [];
-        
+
         for (const file of files) {
             try {
                 // Kiểm tra kích thước file
@@ -92,17 +93,18 @@ const AddTask = ({ onClose }) => {
                 toast.error(`Error processing file ${file.name}`);
             }
         }
-        
+
         // Kiểm tra tổng kích thước
         const totalSize = newAttachments.reduce((acc, curr) => acc + curr.length, 0);
         if (totalSize > 10 * 1024 * 1024) { // 10MB
             toast.error('Total file size exceeds 10MB limit');
             return;
         }
-        
+
         setAttachments(prev => [...prev, ...newAttachments]);
     };
 
+    // Hàm kiểm tra tính hợp lệ của dữ liệu
     const handleSubmit = async (e) => {
         e.preventDefault();
 

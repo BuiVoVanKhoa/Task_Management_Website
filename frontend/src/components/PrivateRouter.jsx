@@ -4,6 +4,7 @@ import { useAuthContext } from '../context/AuthContext';
 const PrivateRoute = () => {
   const { authUser, loading } = useAuthContext();
 
+  // Hiển thị loading spinner khi đang kiểm tra xác thực
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -12,6 +13,8 @@ const PrivateRoute = () => {
     );
   }
 
+  // Nếu đã đăng nhập, hiển thị nội dung route (Outlet)
+  // Nếu chưa đăng nhập, chuyển hướng về trang login
   return authUser ? <Outlet /> : <Navigate to="/login" />;
 };
 

@@ -47,7 +47,7 @@ const TaskCard = ({ task, refetch, onDeleteSuccess }) => {
         try {
             setIsDeleting(true);
             await deleteTask(task._id);
-            refetch(); // Refresh the task list after successful deletion
+            refetch(); // Làm mới danh sách tác vụ sau khi xóa thành công
             if (onDeleteSuccess) {
                 onDeleteSuccess();
             }

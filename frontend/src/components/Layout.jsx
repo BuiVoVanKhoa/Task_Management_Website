@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { useTheme } from '../context/ThemeContext';
 
+// Hàm tạo styles cho DatePicker dựa trên chế độ theme sáng/tối
 const getDatePickerStyles = (darkMode) => `
   .react-datepicker {
     font-family: inherit;
@@ -41,10 +42,14 @@ const getDatePickerStyles = (darkMode) => `
   }
 `;
 
+// Component Layout chính của ứng dụng
 const Layout = () => {
+  // Lấy trạng thái theme từ context
   const { darkMode } = useTheme();
+  // Quản lý trạng thái đóng/mở của sidebar
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
+  // Effect để cập nhật styles của DatePicker khi theme thay đổi
   useEffect(() => {
     const styleElement = document.getElementById('datepicker-styles');
     if (styleElement) {
@@ -57,6 +62,7 @@ const Layout = () => {
     }
   }, [darkMode]);
 
+  // Định nghĩa các classes CSS dựa trên theme
   const themeClasses = {
     navbar: darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
     sidebar: darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900',
@@ -71,19 +77,24 @@ const Layout = () => {
   };
 
   return (
+    // Container chính với flexbox layout
     <div className="flex h-screen overflow-hidden">
+      {/* Sidebar component với props để điều khiển trạng thái và theme */}
       <Sidebar
         isOpen={isSidebarOpen}
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
         themeClasses={themeClasses}
       />
 
+      {/* Container phải chứa navbar và nội dung chính */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Navbar component với props điều khiển sidebar và theme */}
         <Navbar
           toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
           themeClasses={themeClasses}
         />
 
+        {/* Phần nội dung chính sử dụng Outlet từ React Router */}
         <main className={`flex-1 overflow-auto p-4 ${themeClasses.mainContent}`}>
           <Outlet />
         </main>

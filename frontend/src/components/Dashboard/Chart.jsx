@@ -14,7 +14,7 @@ import useTaskData from '../../hooks/useTaskData';
 const Chart = () => {
     const { task } = useTaskData();
 
-    // Calculate tasks by priority
+    // Tính toán các tác vụ theo mức độ ưu tiên
     const tasksByPriority = {
         high: task?.filter((t) => t.priority === 'high').length || 0,
         medium: task?.filter((t) => t.priority === 'medium').length || 0,
@@ -25,17 +25,17 @@ const Chart = () => {
         {
             name: 'High',
             tasks: tasksByPriority.high,
-            color: '#ef4444', // red
+            color: '#ef4444',
         },
         {
             name: 'Medium',
             tasks: tasksByPriority.medium,
-            color: '#f59e0b', // amber
+            color: '#f59e0b',
         },
         {
             name: 'Low',
             tasks: tasksByPriority.low,
-            color: '#22c55e', // green
+            color: '#22c55e',
         },
     ];
 

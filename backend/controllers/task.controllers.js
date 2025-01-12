@@ -1,8 +1,3 @@
-/**
- * Controllers cho Task Management
- * Xử lý tất cả các thao tác liên quan đến tasks
- */
-
 import Task from "../models/tasks.models.js";
 /**
  * Tạo task mới
@@ -24,12 +19,12 @@ export const createTask = async (req, res) => {
       priority,
       assignedTo,
       attachments,
-      teamId
+      teamId,
     } = req.body;
 
     const createdBy = req.user._id;
 
-    // Validate required fields
+    // Xác thực các trường bắt buộc
     if (!title || !description || !dueDate || !teamId) {
       return res.status(400).json({
         success: false,
@@ -37,7 +32,7 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Ensure assignedTo is an array and not empty
+    // Đảm bảo assignedTo là một mảng và không rỗng
     if (!assignedTo || !Array.isArray(assignedTo) || assignedTo.length === 0) {
       return res.status(400).json({
         success: false,
@@ -45,7 +40,7 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Validate attachments
+    // Xác thực tệp đính kèm
     if (attachments && !Array.isArray(attachments)) {
       return res.status(400).json({
         success: false,
@@ -53,22 +48,22 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Create new task
+    // Tạo task mới
     const newTask = new Task({
       title,
       description,
       dueDate,
-      status: status || 'todo',
-      priority: priority || 'medium',
+      status: status || "todo",
+      priority: priority || "medium",
       assignedTo,
       attachments: attachments || [],
       createdBy,
-      teamId
+      teamId,
     });
 
     await newTask.save();
 
-    // Populate user information
+    // Điền thông tin người dùng
     const populatedTask = await Task.findById(newTask._id)
       .populate("assignedTo", "username avatarUrl")
       .populate("createdBy", "username")
@@ -122,12 +117,12 @@ export const getTaskById = async (req, res) => {
 
     // Tìm task và populate đầy đủ thông tin cần thiết
     const task = await Task.findById(id)
-      .populate("assignedTo", "username avatarUrl _id") 
-      .populate("createdBy", "username _id") 
-      .populate("teamId", "name members") 
+      .populate("assignedTo", "username avatarUrl _id")
+      .populate("createdBy", "username _id")
+      .populate("teamId", "name members")
       .populate({
-        path: 'comments.createdBy',
-        select: 'username avatar _id'
+        path: "comments.createdBy",
+        select: "username avatar _id",
       });
 
     if (!task) {
@@ -139,7 +134,9 @@ export const getTaskById = async (req, res) => {
 
     // Kiểm tra quyền truy cập
     const isCreator = task.createdBy._id.toString() === req.user._id.toString();
-    const isAssigned = task.assignedTo.some(user => user._id.toString() === req.user._id.toString());
+    const isAssigned = task.assignedTo.some(
+      (user) => user._id.toString() === req.user._id.toString()
+    );
     const isInTeam =
       task.teamId &&
       task.teamId.members.some(
@@ -159,7 +156,7 @@ export const getTaskById = async (req, res) => {
       data: task,
     });
   } catch (error) {
-    console.error('Error in getTaskById:', error);
+    console.error("Error in getTaskById:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -238,7 +235,9 @@ export const addTaskComment = async (req, res) => {
     }
 
     // Kiểm tra xem user có phải là người được assign hoặc người tạo task không
-    const isAssigned = task.assignedTo.some(id => id.toString() === userId.toString());
+    const isAssigned = task.assignedTo.some(
+      (id) => id.toString() === userId.toString()
+    );
     const isCreator = task.createdBy.toString() === userId.toString();
 
     if (!isAssigned && !isCreator) {
@@ -248,22 +247,22 @@ export const addTaskComment = async (req, res) => {
       });
     }
 
-    // Add the new comment with user reference
+    // Thêm bình luận mới với tham chiếu người dùng
     const newComment = {
       text: text.trim(),
       createdBy: userId,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     task.comments.push(newComment);
     await task.save();
 
-    // Populate the createdBy field before sending response
+    // Điền trường createdBy trước khi gửi phản hồi
     await task.populate([
       {
-        path: 'comments.createdBy',
-        select: 'username avatar'
-      }
+        path: "comments.createdBy",
+        select: "username avatar",
+      },
     ]);
 
     const savedComment = task.comments[task.comments.length - 1];
@@ -271,13 +270,13 @@ export const addTaskComment = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Comment added successfully",
-      comment: savedComment
+      comment: savedComment,
     });
   } catch (error) {
-    console.error('Error in addTaskComment:', error);
+    console.error("Error in addTaskComment:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to add comment"
+      message: "Failed to add comment",
     });
   }
 };

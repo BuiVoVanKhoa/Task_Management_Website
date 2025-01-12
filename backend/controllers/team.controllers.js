@@ -33,7 +33,7 @@ export const createTeam = async (req, res) => {
             teamCode: savedTeam.teamCode
         });
 
-        // Populate leader info và select thêm teamCode
+     // Điền thông tin người Leader và chọn thêm teamCode
         const populatedTeam = await Team.findById(savedTeam._id)
             .select('name description avatar teamCode members leader')
             .populate('leader', 'username avatarUrl')

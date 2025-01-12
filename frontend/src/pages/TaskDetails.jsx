@@ -10,15 +10,14 @@ import useGetTaskById from '../hooks/useGetTaskById';
 
 // Tạo axios instance với cấu hình chung
 const axiosInstance = axios.create({
-  baseURL: '',  // Empty baseURL since we're using Vite's proxy
+  baseURL: '',
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // This is important for sending cookies
+  withCredentials: true,
 });
 
-// Không cần interceptor vì chúng ta sẽ sử dụng cookie
-
+// Cấu hình cho task priority, status
 const TASK_CONFIG = {
   priority: {
     icons: {
@@ -46,12 +45,14 @@ const TASK_CONFIG = {
   }
 };
 
+// Avatar các thành viên
 const Avatar = ({ username, className = "" }) => (
   <div className={clsx('w-10 h-10 rounded-full text-white flex items-center justify-center text-sm bg-blue-600', className)}>
     <span className='text-center'>{username?.charAt(0)?.toUpperCase()}</span>
   </div>
 );
 
+// Hiển thị mức độ ưu tiên của task
 const PriorityBadge = ({ priority }) => (
   <div className={clsx(
     "flex gap-1 items-center text-base font-semibold px-3 py-1 rounded-full",
@@ -63,6 +64,7 @@ const PriorityBadge = ({ priority }) => (
   </div>
 );
 
+// Hiển thị trạng thái của task
 const StatusBadge = ({ status }) => (
   <div className="flex items-center gap-2">
     <div className={clsx('w-4 h-4 rounded-full', TASK_CONFIG.status.styles[status])} />
@@ -70,6 +72,7 @@ const StatusBadge = ({ status }) => (
   </div>
 );
 
+// Format DD/MM/YYYY
 const formatDate = (date, format = 'en-GB') => {
   if (!date) return '';
   return new Date(date).toLocaleDateString(format, {
@@ -79,18 +82,7 @@ const formatDate = (date, format = 'en-GB') => {
   });
 };
 
-const formatDateTime = (date) => {
-  if (!date) return '';
-  return new Date(date).toLocaleString('vi-VN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-};
-
+// Hàm hiển thị comment
 const CommentItem = ({ comment, onDelete, currentUserId }) => {
   const formattedDate = new Date(comment?.createdAt).toLocaleString('vi-VN', {
     year: 'numeric',
@@ -145,6 +137,7 @@ const CommentItem = ({ comment, onDelete, currentUserId }) => {
   );
 };
 
+// Form thêm comment
 const CommentForm = ({ onSubmit, isSubmitting, value, onChange }) => (
   <form onSubmit={onSubmit} className="mt-4">
     <div className="flex flex-col space-y-3">
@@ -178,11 +171,11 @@ const CommentSection = ({ taskId, comments: initialComments = [], task }) => {
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Lấy thông tin user từ localStorage
   const userInfo = JSON.parse(localStorage.getItem('user')) || {};
   const userToken = localStorage.getItem('token');
-  
+
   console.log('=== Debug Info ===');
   console.log('Task:', {
     id: task?._id,
@@ -197,7 +190,7 @@ const CommentSection = ({ taskId, comments: initialComments = [], task }) => {
 
   // Kiểm tra quyền comment
   const canComment = task && (
-    task.assignedTo?.some(user => user._id === userInfo._id) || 
+    task.assignedTo?.some(user => user._id === userInfo._id) ||
     task.createdBy?._id === userInfo._id
   );
 
@@ -241,11 +234,11 @@ const CommentSection = ({ taskId, comments: initialComments = [], task }) => {
 
   const handleDeleteComment = async (commentId) => {
     if (isDeleting) return;
-    
+
     try {
       setIsDeleting(true);
       const response = await axiosInstance.delete(`/api/tasks/${taskId}/comment/${commentId}`);
-      
+
       if (response.data.success) {
         setComments(prevComments => prevComments.filter(comment => comment._id !== commentId));
         toast.success('Comment deleted successfully');
@@ -296,6 +289,7 @@ const CommentSection = ({ taskId, comments: initialComments = [], task }) => {
   );
 };
 
+// Hiển thị các thành viên trong task
 const TaskTeam = ({ createdBy, assignedTo = [] }) => (
   <div className='space-y-4'>
     <p className='text-gray-600 font-semibold text-sm'>TASK TEAM</p>
@@ -321,6 +315,7 @@ const TaskTeam = ({ createdBy, assignedTo = [] }) => (
   </div>
 );
 
+// Hiển thị hình anh trong task
 const ImageGallery = ({ images = [], onImageClick }) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -336,8 +331,8 @@ const ImageGallery = ({ images = [], onImageClick }) => {
     <div className="mt-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {images.map((image, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
             onClick={() => handleImageClick(image)}
           >
@@ -352,7 +347,7 @@ const ImageGallery = ({ images = [], onImageClick }) => {
       </div>
 
       {selectedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-95 cursor-pointer"
           onClick={handleCloseImage}
         >
@@ -369,6 +364,7 @@ const ImageGallery = ({ images = [], onImageClick }) => {
   );
 };
 
+// Hiển thị chi tiết task
 const TaskDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -389,7 +385,7 @@ const TaskDetails = () => {
     <div className="container mx-auto px-4 py-8">
       <div className='bg-white shadow-md rounded-lg overflow-hidden p-4'>
         <div className="flex items-center gap-4 mb-6">
-          <button 
+          <button
             onClick={() => navigate('/tasks')}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -428,8 +424,8 @@ const TaskDetails = () => {
       </div>
 
       {showImageModal && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" 
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowImageModal(false)}
         >
           <div className="relative max-w-4xl w-full" onClick={e => e.stopPropagation()}>
