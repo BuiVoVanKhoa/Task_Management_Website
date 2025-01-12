@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.models.js";
+import mailSender from "../helpers/mail.sender.js";
 
 export const signup = async (req, res) => {
   try {
@@ -49,6 +50,31 @@ export const signup = async (req, res) => {
       role: userRole,
     });
     await newUser.save();
+
+    // Gửi email chào mừng
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2c3e50; text-align: center;">Chào mừng đến với Task Management!</h2>
+        <p style="color: #34495e;">Xin chào ${username},</p>
+        <p style="color: #34495e;">Chúc mừng bạn đã đăng ký tài khoản Task Management thành công!</p>
+        <p style="color: #34495e;">Bạn có thể bắt đầu sử dụng hệ thống ngay bây giờ để:</p>
+        <ul style="color: #34495e;">
+          <li>Tạo và quản lý các task</li>
+          <li>Tham gia các team</li>
+          <li>Theo dõi tiến độ công việc</li>
+        </ul>
+        <p style="color: #34495e;">Chúc bạn có những trải nghiệm tuyệt vời!</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <p style="color: #7f8c8d;">Task Management Team</p>
+        </div>
+      </div>
+    `;
+
+    await mailSender({
+      email,
+      subject: "Chào mừng đến với Task Management",
+      html: emailHtml
+    });
 
     // Tạo mã token
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
