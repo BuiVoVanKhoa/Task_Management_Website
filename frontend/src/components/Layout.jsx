@@ -48,6 +48,7 @@ const Layout = () => {
   const { darkMode } = useTheme();
   // Quản lý trạng thái đóng/mở của sidebar
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  
 
   // Effect để cập nhật styles của DatePicker khi theme thay đổi
   useEffect(() => {

@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 // Import icons từ react-icons
-import { FaUsers, FaPlus, FaDoorOpen } from 'react-icons/fa';
-import AvatarPicker from '../components/Teams/AvatarPicker';
-import TeamCard from '../components/Teams/TeamCard';
-import useTeamData from '../hooks/useTeamData';
-import useCUD_TeamData from '../hooks/useCUD_TeamData';
-
+import { FaUsers, FaPlus, FaDoorOpen } from "react-icons/fa";
+import AvatarPicker from "../components/Teams/AvatarPicker";
+import TeamCard from "../components/Teams/TeamCard";
+import useTeamData from "../hooks/useTeamData";
+import useCUD_TeamData from "../hooks/useCUD_TeamData";
+import { useSearchContext } from "../context/SearchContext";
 
 const TeamPage = () => {
   const { team, error, loading, refetch } = useTeamData();
@@ -14,11 +14,12 @@ const TeamPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    avatar: 'avt-0', // Default avatar
+    name: "",
+    description: "",
+    avatar: "avt-0", // Default avatar
   });
-  const [teamCode, setTeamCode] = useState('');
+  const [teamCode, setTeamCode] = useState("");
+  const { searchQuery } = useSearchContext();
 
   useEffect(() => {
     if (error) {
@@ -36,15 +37,15 @@ const TeamPage = () => {
       await createTeam(formData);
       setShowCreateModal(false);
       setFormData({
-        name: '',
-        description: '',
-        avatar: 'avt-0'
+        name: "",
+        description: "",
+        avatar: "avt-0",
       });
       // Refresh the team list after creating a new team
       refetch();
     } catch (error) {
-      console.error('Error creating team:', error);
-      toast.error('Failed to create team');
+      console.error("Error creating team:", error);
+      toast.error("Failed to create team");
     }
   };
 
@@ -53,14 +54,21 @@ const TeamPage = () => {
     try {
       await joinTeam(teamCode);
       setShowJoinModal(false);
-      setTeamCode('');
+      setTeamCode("");
       // Refresh the team list after joining a team
       refetch();
     } catch (error) {
-      console.error('Error joining team:', error);
-      toast.error('Failed to join team');
+      console.error("Error joining team:", error);
+      toast.error("Failed to join team");
     }
   };
+
+  // Thêm kiểm tra an toàn khi lọc teams
+  const filteredTeams = team.filter((team) =>
+    team?.name
+      ? team.name.toLowerCase().includes(searchQuery.toLowerCase())
+      : false
+  );
 
   if (loading) {
     return (
@@ -70,9 +78,9 @@ const TeamPage = () => {
     );
   }
 
-   // Callback khi xóa team
-   const handleDeleteTeam = () => {
-    refetch();  // Gọi lại refetch để cập nhật danh sách team
+  // Callback khi xóa team
+  const handleDeleteTeam = () => {
+    refetch(); // Gọi lại refetch để cập nhật danh sách team
   };
 
   return (
@@ -117,15 +125,22 @@ const TeamPage = () => {
         {/* Teams Grid */}
         {team && team.length > 0 ? (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {team.map((teamItem) => (
-              <TeamCard key={teamItem._id} {...teamItem} teamLeader={teamItem.leader}  team={team}
-              onDelete={handleDeleteTeam}/>
+            {filteredTeams.map((teamItem) => (
+              <TeamCard
+                key={teamItem._id}
+                {...teamItem}
+                teamLeader={teamItem.leader}
+                team={team}
+                onDelete={handleDeleteTeam}
+              />
             ))}
           </div>
         ) : (
           <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
             <FaUsers className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No Teams Yet</h3>
+            <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">
+              No Teams Yet
+            </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Get started by creating a new team or joining an existing one.
             </p>
@@ -145,7 +160,10 @@ const TeamPage = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Team Avatar
                   </label>
-                  <AvatarPicker selectedAvatar={formData.avatar} onSelect={(avatar) => setFormData({ ...formData, avatar })} />
+                  <AvatarPicker
+                    selectedAvatar={formData.avatar}
+                    onSelect={(avatar) => setFormData({ ...formData, avatar })}
+                  />
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -177,7 +195,11 @@ const TeamPage = () => {
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false);
-                      setFormData({ name: '', description: '', avatar: 'avt-0' });
+                      setFormData({
+                        name: "",
+                        description: "",
+                        avatar: "avt-0",
+                      });
                     }}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
@@ -221,7 +243,7 @@ const TeamPage = () => {
                     type="button"
                     onClick={() => {
                       setShowJoinModal(false);
-                      setTeamCode('');
+                      setTeamCode("");
                     }}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
@@ -244,6 +266,6 @@ const TeamPage = () => {
 };
 
 // Team Card
-<TeamCard />
+<TeamCard />;
 
 export default TeamPage;

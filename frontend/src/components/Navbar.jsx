@@ -2,16 +2,30 @@ import React, { useState } from "react";
 import { HiOutlineMenu } from "react-icons/hi";
 import { MdOutlineSearch } from "react-icons/md";
 import { useAuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { BellIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { HiUser, HiArrowLeftStartOnRectangle } from "react-icons/hi2";
 import ThemeToggle from "./ThemeToggle";
+import { useSearchContext } from "../context/SearchContext";
 
 const Navbar = ({ toggleSidebar, themeClasses }) => {
   // Lấy thông tin người dùng và hàm logout từ AuthContext
   const { authUser, logout } = useAuthContext();
   // Quản lý trạng thái hiển thị menu profile
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { searchQuery, setSearchQuery } = useSearchContext();
+  const location = useLocation();
+
+  // Kiểm tra xem có đang ở trang Dashboard không
+  const isDashboardPage = location.pathname === "/dashboard";
+
+  // Thêm log để debug
+  console.log("Current searchQuery in Navbar:", searchQuery);
+
+  const handleSearchChange = (e) => {
+    console.log("Search input changed:", e.target.value);
+    setSearchQuery(e.target.value);
+  };
 
   return (
     <div
@@ -28,35 +42,39 @@ const Navbar = ({ toggleSidebar, themeClasses }) => {
         </button>
       </div>
 
-      {/* Phần giữa - Thanh tìm kiếm */}
-      <div className="flex-1 max-w-xl px-4">
-        <div
-          className={`flex items-center py-2 px-4 gap-2 rounded-full w-full ${
-            themeClasses.navbar === "bg-gray-900 text-white"
-              ? "bg-gray-800 text-gray-300"
-              : "bg-gray-100 text-gray-900"
-          }`}
-        >
-          {/* Icon tìm kiếm */}
-          <MdOutlineSearch
-            className={`text-xl ${
+      {/* Phần giữa - Thanh tìm kiếm (ẩn ở trang Dashboard) */}
+      {!isDashboardPage && (
+        <div className="flex-1 max-w-xl px-4">
+          <div
+            className={`flex items-center py-2 px-4 gap-2 rounded-full w-full ${
               themeClasses.navbar === "bg-gray-900 text-white"
-                ? "text-gray-400"
-                : "text-gray-500"
+                ? "bg-gray-800 text-gray-300"
+                : "bg-gray-100 text-gray-900"
             }`}
-          />
-          {/* Input tìm kiếm */}
-          <input
-            type="text"
-            placeholder="Search..."
-            className={`w-full bg-transparent focus:outline-none text-sm ${
-              themeClasses.navbar === "bg-gray-900 text-white"
-                ? "placeholder-gray-500 text-gray-300"
-                : "placeholder-gray-500 text-gray-900"
-            }`}
-          />
+          >
+            {/* Icon tìm kiếm */}
+            <MdOutlineSearch
+              className={`text-xl ${
+                themeClasses.navbar === "bg-gray-900 text-white"
+                  ? "text-gray-400"
+                  : "text-gray-500"
+              }`}
+            />
+            {/* Input tìm kiếm */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search..."
+              className={`w-full bg-transparent focus:outline-none text-sm ${
+                themeClasses.navbar === "bg-gray-900 text-white"
+                  ? "placeholder-gray-500 text-gray-300"
+                  : "placeholder-gray-500 text-gray-900"
+              }`}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Phần bên phải - Theme toggle, thông báo và menu profile */}
       <div className="flex items-center gap-3">
