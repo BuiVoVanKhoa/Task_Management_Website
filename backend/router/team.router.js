@@ -8,10 +8,11 @@ import {
   removeTeamMember,
   joinTeam,
   getTeams,
+  deleteTeam,
+  leaveTeam
 } from "../controllers/team.controllers.js";
 import Team from "../models/team.models.js";
 import mongoose from "mongoose";
-import { deleteTeam } from "../controllers/team.controllers.js";
 
 const router = express.Router();
 
@@ -77,6 +78,7 @@ router.post("/reset-db", async (req, res) => {
 });
 
 // Team routes
+router.post("/:teamId/leave", leaveTeam);
 router.get("/", getTeams);
 router.post("/", createTeam);
 router.post("/join/:teamCode", joinTeam); // Đặt trước các route có :teamId

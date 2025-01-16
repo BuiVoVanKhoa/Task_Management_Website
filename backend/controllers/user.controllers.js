@@ -24,15 +24,8 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Tạo avatar dựa trên giới tính
-    let avatar;
-    if (gender === "male") {
-      avatar = "https://avatar.iran.liara.run/public/boy";
-    } else if (gender === "female") {
-      avatar = "https://avatar.iran.liara.run/public/girl";
-    } else {
-      avatar = "https://avatar.iran.liara.run/public";
-    }
+    // Tạo avatar mặc định
+    const avatarUrl = "/avt_profile/avt_0.jpg";
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -46,7 +39,7 @@ export const signup = async (req, res) => {
       password: hashedPassword,
       gender,
       email,
-      avatarUrl: avatar,
+      avatarUrl,
       role: userRole,
     });
     await newUser.save();
@@ -241,10 +234,10 @@ export const verifyToken = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { username, email, gender } = req.body;
+    const { username, email, gender, avatarUrl } = req.body;
     const userId = req.user._id;
 
-    // Xác thực đầu vào
+    // Kiểm tra các trường bắt buộc
     if (!username || !email || !gender) {
       return res.status(400).json({
         success: false,
@@ -252,70 +245,32 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    // Lấy người dùng hiện tại
-    const currentUser = await User.findById(userId);
-
-    // Chỉ kiểm tra email trùng lặp nếu email khác với email hiện tại
-    if (email !== currentUser.email) {
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
+    // Kiểm tra xem email mới có bị trùng không (nếu email thay đổi)
+    if (email !== req.user.email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: "Email is already in use",
+          message: "Email already in use",
         });
       }
     }
 
-    // Chỉ kiểm tra tên người dùng trùng lặp nếu tên người dùng khác với tên người dùng hiện tại
-    if (username !== currentUser.username) {
-      const existingUsername = await User.findOne({ username });
-      if (existingUsername) {
-        return res.status(400).json({
-          success: false,
-          message: "Username is already taken",
-        });
-      }
-    }
-
-    // Đặt avatar dựa trên giới tính
-    let avatarUrl;
-    if (gender === "male") {
-      avatarUrl = "https://avatar.iran.liara.run/public/boy";
-    } else if (gender === "female") {
-      avatarUrl = "https://avatar.iran.liara.run/public/girl";
-    }
-
-    // Cập nhật thông tin user
+    // Cập nhật thông tin người dùng
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
         username,
         email,
         gender,
-        avatarUrl,
+        avatarUrl: avatarUrl || '/avt_profile/avt_0.jpg',
       },
       { new: true }
     ).select("-password");
 
-    if (!updatedUser) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
     res.json({
       success: true,
-      message: "Profile updated successfully",
-      user: {
-        _id: updatedUser._id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        avatarUrl: updatedUser.avatarUrl,
-        role: updatedUser.role,
-        gender: updatedUser.gender,
-        createdAt: updatedUser.createdAt,
-      },
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Update profile error:", error);

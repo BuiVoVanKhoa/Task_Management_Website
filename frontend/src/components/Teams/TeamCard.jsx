@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { FaUsers, FaCrown, FaRegCopy } from 'react-icons/fa';
+import { FaUsers, FaCrown, FaRegCopy, FaEdit } from 'react-icons/fa';
 import { BsCodeSquare } from 'react-icons/bs';
 import { MdDescription } from 'react-icons/md';
 import useCUD_TeamData from '../../hooks/useCUD_TeamData';
 import { TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 import DeleteConfirmDialog from '../DeleteConfirmDialog';
+import EditTeamDialog from './EditTeamDialog';
 
 const TeamCard = (team) => {
     const [showCopied, setShowCopied] = useState(false);
     const [imgError, setImgError] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
-    const { deleteTeam, loading, getTeamMembers, removeTeamMember } = useCUD_TeamData();
+    const { deleteTeam, loading, getTeamMembers, removeTeamMember, leaveTeam, updateTeam } = useCUD_TeamData();
     // console.log('Rendering TeamCard with team:', team);
     const [showDeleteTeamDialog, setShowDeleteTeamDialog] = useState(false);
     const [showDeleteMemberDialog, setShowDeleteMemberDialog] = useState(false);
+    const [showEditTeamDialog, setShowEditTeamDialog] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
-
+    const [showLeaveTeamDialog, setShowLeaveTeamDialog] = useState(false);
 
     useEffect(() => {
         // Lấy thông tin người dùng từ localStorage
@@ -71,6 +73,28 @@ const TeamCard = (team) => {
             setShowDeleteTeamDialog(false);
         } catch (error) {
             console.error('Error deleting team:', error);
+        }
+    };
+
+    const handleLeaveTeam = async () => {
+        try {
+            const success = await leaveTeam(team._id);
+            if (success) {
+                window.location.reload();
+            }
+            setShowLeaveTeamDialog(false);
+        } catch (error) {
+            console.error('Error leaving team:', error);
+        }
+    };
+
+    const handleEditTeam = async (formData) => {
+        try {
+            await updateTeam(team._id, formData);
+            setShowEditTeamDialog(false);
+            window.location.reload();
+        } catch (error) {
+            console.error('Error updating team:', error);
         }
     };
 
@@ -145,14 +169,23 @@ const TeamCard = (team) => {
 
                 {/* Nút Xóa - chỉ hiển thị nếu là người lãnh đạo */}
                 {isTeamLeader && (
-                    <button
-                        className="w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-300 rounded-full shadow-md focus:outline-none"
-                        onClick={() => setShowDeleteTeamDialog(true)}
-                        disabled={loading}
-                        title="Delete team"
-                    >
-                        <TrashIcon className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => setShowEditTeamDialog(true)}
+                            className="w-8 h-8 flex items-center justify-center bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-300 rounded-full shadow-md focus:outline-none"
+                            title="Edit Team"
+                        >
+                            <FaEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                            className="w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-300 rounded-full shadow-md focus:outline-none"
+                            onClick={() => setShowDeleteTeamDialog(true)}
+                            disabled={loading}
+                            title="Delete team"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -266,6 +299,14 @@ const TeamCard = (team) => {
                                                     <TrashIcon className="w-4 h-4" />
                                                 </button>
                                             )}
+                                        {currentUser && currentUser._id === member._id && !isTeamLeader && (
+                                            <button
+                                                onClick={() => setShowLeaveTeamDialog(true)}
+                                                className="text-red-500 hover:text-red-700 px-3 py-1 rounded-md border border-red-500 hover:bg-red-50"
+                                            >
+                                                Leave Team
+                                            </button>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -291,13 +332,30 @@ const TeamCard = (team) => {
             {/* Delete Member Dialog */}
             <DeleteConfirmDialog
                 isOpen={showDeleteMemberDialog}
-                onClose={() => {
-                    setShowDeleteMemberDialog(false);
-                    setSelectedMember(null);
-                }}
+                onClose={() => setShowDeleteMemberDialog(false)}
                 onConfirm={handleRemoveMember}
-                title={selectedMember?.username || ''}
+                title={`Remove ${selectedMember?.username || ''} from team`}
+                message={`Are you sure you want to remove ${selectedMember?.username || ''} from the team?`}
                 isDeleting={loading}
+            />
+
+            {/* Dialog xác nhận rời team */}
+            <DeleteConfirmDialog
+                isOpen={showLeaveTeamDialog}
+                onClose={() => setShowLeaveTeamDialog(false)}
+                onConfirm={handleLeaveTeam}
+                title="Leave Team"
+                message="Are you sure you want to leave this team? This action cannot be undone."
+                isDeleting={loading}
+            />
+
+            {/* Dialog chỉnh sửa team */}
+            <EditTeamDialog
+                isOpen={showEditTeamDialog}
+                onClose={() => setShowEditTeamDialog(false)}
+                onConfirm={handleEditTeam}
+                team={team}
+                isProcessing={loading}
             />
         </div>
     );

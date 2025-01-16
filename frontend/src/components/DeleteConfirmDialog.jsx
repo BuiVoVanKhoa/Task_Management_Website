@@ -2,7 +2,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { FaExclamationTriangle } from 'react-icons/fa';
 
-const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, title, isDeleting }) => {
+const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, isDeleting }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -36,13 +36,13 @@ const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, title, isDeleting }) 
                     as="h3"
                     className="text-lg font-medium leading-6"
                   >
-                    Delete Confirmation
+                    {title || 'Delete Confirmation'}
                   </Dialog.Title>
                 </div>
 
                 <div className="mt-2">
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Are you sure you want to delete task "{title}"? This action cannot be undone.
+                    {message}
                   </p>
                 </div>
 
@@ -60,7 +60,7 @@ const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, title, isDeleting }) 
                     onClick={onConfirm}
                     disabled={isDeleting}
                   >
-                    {isDeleting ? 'Deleting...' : 'Delete'}
+                    {isDeleting ? 'Processing...' : 'Confirm'}
                   </button>
                 </div>
               </Dialog.Panel>

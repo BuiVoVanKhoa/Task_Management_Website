@@ -109,7 +109,7 @@ const Navbar = ({ toggleSidebar, themeClasses }) => {
               {/* Link đến trang profile */}
               <Link
                 to="/profile"
-                className={`block px-4 py-2 text-sm flex items-center ${themeClasses.menuItem.inactive}`}
+                className={`px-4 py-2 text-sm flex items-center ${themeClasses.menuItem.inactive}`}
                 onClick={() => setShowProfileMenu(false)}
               >
                 <HiUser className="mr-2" />
@@ -122,7 +122,7 @@ const Navbar = ({ toggleSidebar, themeClasses }) => {
                   logout();
                   setShowProfileMenu(false);
                 }}
-                className={`block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 flex items-center`}
+                className={`w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 flex items-center`}
               >
                 <HiArrowLeftStartOnRectangle className="mr-2" />
                 Logout

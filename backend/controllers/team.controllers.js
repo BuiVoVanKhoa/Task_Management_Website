@@ -216,9 +216,10 @@ export const removeTeamMember = async (req, res) => {
 export const updateTeam = async (req, res) => {
     try {
         const { teamId } = req.params;
-        const updates = req.body;
-        const requestingUser = req.user._id;
+        const { name, description, avatar } = req.body;
+        const userId = req.user._id;
 
+        // Kiểm tra team có tồn tại không
         const team = await Team.findById(teamId);
         if (!team) {
             return res.status(404).json({
@@ -227,42 +228,33 @@ export const updateTeam = async (req, res) => {
             });
         }
 
-        // Kiểm tra quyền
-        const isAdmin = team.members.some(member => 
-            member.user.toString() === requestingUser.toString() && 
-            member.role === 'admin'
-        );
-
-        if (!isAdmin) {
+        // Kiểm tra người dùng có phải là leader không
+        if (team.leader.toString() !== userId.toString()) {
             return res.status(403).json({
                 success: false,
-                message: "Only admin can update team"
+                message: "Only team leader can update team information"
             });
         }
 
-        // Chỉ cho phép cập nhật một số trường
-        const allowedUpdates = ['name', 'description', 'avatar'];
-        Object.keys(updates).forEach(key => {
-            if (allowedUpdates.includes(key)) {
-                team[key] = updates[key];
-            }
-        });
+        // Cập nhật thông tin team
+        team.name = name || team.name;
+        team.description = description || team.description;
+        if (avatar) {
+            team.avatar = avatar;
+        }
 
         await team.save();
-        await team.populate([
-            { path: 'leader', select: 'username avatarUrl' },
-            { path: 'members.user', select: 'username avatarUrl' }
-        ]);
 
         res.status(200).json({
             success: true,
+            message: "Team updated successfully",
             data: team
         });
     } catch (error) {
-        console.error('Update team error:', error);
+        console.error("Error updating team:", error);
         res.status(500).json({
             success: false,
-            message: "Error updating team"
+            message: error.message || "Error updating team"
         });
     }
 };
@@ -360,6 +352,54 @@ export const getTeams = async (req, res) => {
     }
 };
 
+// Thành viên tự rời team
+export const leaveTeam = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+        const userId = req.user._id;
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({
+                success: false,
+                message: "Team not found"
+            });
+        }
+
+        // Kiểm tra xem người dùng có phải là leader không
+        if (team.leader.toString() === userId.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: "Team leader cannot leave the team. Transfer leadership or delete the team instead."
+            });
+        }
+
+        // Kiểm tra xem người dùng có trong team không
+        const memberIndex = team.members.findIndex(member => member.user.toString() === userId.toString());
+        if (memberIndex === -1) {
+            return res.status(400).json({
+                success: false,
+                message: "You are not a member of this team"
+            });
+        }
+
+        // Xóa thành viên khỏi team
+        team.members.splice(memberIndex, 1);
+        await team.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Successfully left the team"
+        });
+    } catch (error) {
+        console.error('Leave team error:', error);
+        res.status(500).json({
+            success: false,
+            message: "Error leaving team"
+        });
+    }
+};
+
 // Xóa một team
 export const deleteTeam = async (req, res) => {
     try {
@@ -402,4 +442,3 @@ export const deleteTeam = async (req, res) => {
         });
     }
 };
-

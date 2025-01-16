@@ -165,7 +165,7 @@ const TaskCard = ({ task, refetch, onDeleteSuccess }) => {
 
                 <p className='text-sm text-gray-600 dark:text-gray-400'>
                     <span className='font-semibold mr-1'>
-                        Date:
+                        Due Date:
                     </span>
                     {new Date(task?.dueDate).toLocaleDateString('en-GB', {
                         day: '2-digit',

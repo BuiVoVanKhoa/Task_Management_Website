@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { useAuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { FaEdit, FaSave, FaTimes, FaCamera } from 'react-icons/fa';
+import AvatarSelector from '../components/AvatarSelector';
 
 const Profile = () => {
   const { authUser, setAuthUser } = useAuthContext();
   const [isEditing, setIsEditing] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [formData, setFormData] = useState({
     username: authUser?.username || '',
     email: authUser?.email || '',
-    gender: authUser?.gender || ''
+    gender: authUser?.gender || '',
+    avatarUrl: authUser?.avatarUrl || '/avt_profile/avt_0.jpg'
   });
 
   const formatDate = (dateString) => {
@@ -53,6 +56,13 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarSelect = (newAvatarUrl) => {
+    setFormData(prev => ({
+      ...prev,
+      avatarUrl: newAvatarUrl
+    }));
+  };
+
   if (!authUser) return <div className="flex justify-center items-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
   </div>;
@@ -70,11 +80,21 @@ const Profile = () => {
         <div className="p-6">
           {/* Header with Avatar */}
           <div className="flex flex-col items-center mb-6">
-            <img
-              src={authUser.avatarUrl}
-              alt={`${authUser.username}'s avatar`}
-              className="w-32 h-32 rounded-full border-4 border-blue-500 mb-4"
-            />
+            <div className="relative">
+              <img
+                src={formData.avatarUrl}
+                alt={`${authUser.username}'s avatar`}
+                className="w-32 h-32 rounded-full border-4 border-blue-500 mb-4"
+              />
+              {isEditing && (
+                <button
+                  onClick={() => setShowAvatarSelector(true)}
+                  className="absolute bottom-6 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
+                >
+                  <FaCamera size={16} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -138,7 +158,7 @@ const Profile = () => {
               </div>
             </div>
           </div>
-          
+
           {isEditing && (
             <div className="flex justify-end space-x-3 mt-6">
               <button
@@ -153,7 +173,8 @@ const Profile = () => {
                   setFormData({
                     username: authUser.username,
                     email: authUser.email,
-                    gender: authUser.gender
+                    gender: authUser.gender,
+                    avatarUrl: authUser.avatarUrl
                   });
                 }}
                 className="flex items-center px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
@@ -161,6 +182,14 @@ const Profile = () => {
                 <FaTimes className="mr-2" /> Cancel
               </button>
             </div>
+          )}
+
+          {showAvatarSelector && (
+            <AvatarSelector
+              currentAvatar={formData.avatarUrl}
+              onSelect={handleAvatarSelect}
+              onClose={() => setShowAvatarSelector(false)}
+            />
           )}
         </div>
       </div>
