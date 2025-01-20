@@ -10,6 +10,7 @@ import {
 } from "../controllers/task.controllers.js";
 import { auth } from "../middleware/auth.middleware.js";
 import Task from "../models/tasks.models.js";
+import Notification from "../models/notification.models.js";
 
 const router = express.Router();
 
@@ -40,6 +41,62 @@ router.put("/:taskId", async (req, res) => {
         success: false,
         message: "You don't have permission to update this task",
       });
+    }
+
+    // Kiểm tra nếu người cập nhật là leader (người tạo task)
+    if (task.createdBy.toString() === userId.toString()) {
+      const changedFields = [];
+      
+      // Kiểm tra các trường thay đổi
+      if (updates.title && updates.title !== task.title) changedFields.push('title');
+      if (updates.description && updates.description !== task.description) changedFields.push('description');
+      if (updates.priority && updates.priority !== task.priority) changedFields.push('priority');
+      if (updates.dueDate && updates.dueDate !== task.dueDate) changedFields.push('due date');
+      
+      // Nếu có thay đổi và không phải chỉ là thay đổi trạng thái
+      if (changedFields.length > 0 && !(changedFields.length === 1 && updates.status !== task.status)) {
+        // Tạo thông báo cho tất cả người được gán
+        const notificationRecipients = task.assignedTo.filter(
+          id => id.toString() !== userId.toString()
+        );
+
+        await Promise.all(notificationRecipients.map(recipientId => {
+          const fieldsChanged = changedFields.join(', ');
+          return Notification.create({
+            type: 'TASK_UPDATE',
+            title: `Task "${task.title}" Updated`,
+            message: `${req.user.username} has updated the following task details: ${fieldsChanged}`,
+            sender: userId,
+            recipient: recipientId,
+            relatedTask: taskId
+          });
+        }));
+      }
+    }
+
+    // Nếu trạng thái thay đổi, tạo thông báo cho người được gán và người tạo task
+    if (updates.status && updates.status !== task.status) {
+      const notificationRecipients = [...task.assignedTo];
+      if (!notificationRecipients.includes(task.createdBy)) {
+        notificationRecipients.push(task.createdBy);
+      }
+
+      // Loại bỏ người thay đổi trạng thái khỏi danh sách nhận thông báo
+      const filteredRecipients = notificationRecipients.filter(
+        id => id.toString() !== userId.toString()
+      );
+
+      // Tạo thông báo cho từng người nhận
+      await Promise.all(filteredRecipients.map(recipientId => {
+        return Notification.create({
+          type: 'TASK_STATUS_UPDATED',
+          title: `Task "${task.title}" Status Changed`,
+          message: `${req.user.username} has changed the task status from "${task.status}" to "${updates.status}"`,
+          sender: userId,
+          recipient: recipientId,
+          relatedTask: taskId
+        });
+      }));
     }
 
     // Cập nhật task

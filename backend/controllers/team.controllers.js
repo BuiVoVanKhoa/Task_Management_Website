@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import Team from '../models/team.models.js';
+import { createNotification } from './notification.controllers.js';
 
 // Tạo team mới
 export const createTeam = async (req, res) => {
@@ -157,10 +159,16 @@ export const addTeamMember = async (req, res) => {
 // Xóa thành viên khỏi team
 export const removeTeamMember = async (req, res) => {
     try {
-        const { teamId, userId } = req.params;
-        const requestingUser = req.user._id;
+        const { teamId, userId: memberIdToRemove } = req.params;
+        const leaderId = req.user._id;
 
-        const team = await Team.findById(teamId);
+        const team = await Team.findById(teamId)
+            .populate('leader', 'username')
+            .populate({
+                path: 'members.user',
+                select: 'username'
+            });
+
         if (!team) {
             return res.status(404).json({
                 success: false,
@@ -168,46 +176,53 @@ export const removeTeamMember = async (req, res) => {
             });
         }
 
-        // Kiểm tra quyền
-        const isAdmin = team.members.some(member => 
-            member.user.toString() === requestingUser.toString() && 
-            member.role === 'admin'
-        );
-
-        if (!isAdmin) {
+        // Kiểm tra xem người thực hiện có phải là leader không
+        if (team.leader._id.toString() !== leaderId.toString()) {
             return res.status(403).json({
                 success: false,
-                message: "Only admin can remove members"
+                message: "Only team leader can remove members"
             });
         }
 
-        // Không thể xóa leader
-        if (team.leader.toString() === userId) {
-            return res.status(400).json({
-                success: false,
-                message: "Cannot remove team leader"
-            });
-        }
-
-        team.members = team.members.filter(member => 
-            member.user.toString() !== userId
+        // Kiểm tra xem thành viên cần xóa có tồn tại không
+        const memberIndex = team.members.findIndex(
+            member => member.user._id.toString() === memberIdToRemove
         );
 
+        if (memberIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Member not found in team"
+            });
+        }
+
+        // Lấy thông tin thành viên trước khi xóa
+        const removedMember = team.members[memberIndex];
+
+        // Xóa thành viên khỏi team
+        team.members.splice(memberIndex, 1);
         await team.save();
-        await team.populate([
-            { path: 'leader', select: 'username avatarUrl' },
-            { path: 'members.user', select: 'username avatarUrl' }
-        ]);
+
+        // Tạo thông báo cho thành viên bị kick
+        await createNotification({
+            recipientId: memberIdToRemove,
+            senderId: leaderId,
+            teamId: team._id,
+            type: 'MEMBER_REMOVED',
+            title: 'Removed from Team',
+            message: `You have been removed from team "${team.name}" by the team leader`
+        });
 
         res.status(200).json({
             success: true,
+            message: "Member removed successfully",
             data: team
         });
     } catch (error) {
-        console.error('Remove member error:', error);
+        console.error('Remove team member error:', error);
         res.status(500).json({
             success: false,
-            message: "Error removing member"
+            message: error.message || "Error removing team member"
         });
     }
 };
@@ -220,7 +235,7 @@ export const updateTeam = async (req, res) => {
         const userId = req.user._id;
 
         // Kiểm tra team có tồn tại không
-        const team = await Team.findById(teamId);
+        const team = await Team.findById(teamId).populate('members.user', 'username');
         if (!team) {
             return res.status(404).json({
                 success: false,
@@ -236,6 +251,10 @@ export const updateTeam = async (req, res) => {
             });
         }
 
+        // Lưu thông tin cũ để so sánh
+        const oldName = team.name;
+        const oldDescription = team.description;
+
         // Cập nhật thông tin team
         team.name = name || team.name;
         team.description = description || team.description;
@@ -244,6 +263,33 @@ export const updateTeam = async (req, res) => {
         }
 
         await team.save();
+
+        // Tạo thông báo cho tất cả thành viên
+        const changes = [];
+        if (oldName !== team.name) changes.push('name');
+        if (oldDescription !== team.description) changes.push('description');
+        if (avatar) changes.push('avatar');
+
+        if (changes.length > 0) {
+            const message = `Team ${changes.join(', ')} has been updated`;
+            
+            // Tạo thông báo cho tất cả thành viên (trừ leader)
+            const notifications = team.members
+                .filter(member => member.user._id.toString() !== userId.toString())
+                .map(member => ({
+                    recipientId: member.user._id,
+                    senderId: userId,
+                    teamId: team._id,
+                    type: 'TEAM_UPDATE',
+                    title: 'Team Update',
+                    message: message
+                }));
+
+            // Tạo các thông báo
+            await Promise.all(notifications.map(notification => 
+                createNotification(notification)
+            ));
+        }
 
         res.status(200).json({
             success: true,
@@ -265,15 +311,15 @@ export const joinTeam = async (req, res) => {
         const { teamCode } = req.params;
         const userId = req.user._id;
 
-        const team = await Team.findOne({ teamCode });
+        const team = await Team.findOne({ teamCode }).populate('leader', 'username');
         if (!team) {
             return res.status(404).json({
                 success: false,
-                message: "Invalid team code"
+                message: "Team not found"
             });
         }
 
-        // Kiểm tra xem user đã là thành viên chưa
+        // Kiểm tra xem người dùng đã là thành viên chưa
         const isMember = team.members.some(member => 
             member.user.toString() === userId.toString()
         );
@@ -285,26 +331,34 @@ export const joinTeam = async (req, res) => {
             });
         }
 
+        // Thêm người dùng vào team
         team.members.push({
             user: userId,
             role: 'member'
         });
 
         await team.save();
-        await team.populate([
-            { path: 'leader', select: 'username avatarUrl' },
-            { path: 'members.user', select: 'username avatarUrl' }
-        ]);
+
+        // Tạo thông báo cho leader
+        await createNotification({
+            recipientId: team.leader._id,
+            senderId: userId,
+            teamId: team._id,
+            type: 'MEMBER_ADDED',
+            title: 'New Team Member',
+            message: `${req.user.username} has joined your team using invite code`
+        });
 
         res.status(200).json({
             success: true,
+            message: "Successfully joined team",
             data: team
         });
     } catch (error) {
         console.error('Join team error:', error);
         res.status(500).json({
             success: false,
-            message: "Error joining team"
+            message: error.message || "Error joining team"
         });
     }
 };
@@ -358,7 +412,13 @@ export const leaveTeam = async (req, res) => {
         const { teamId } = req.params;
         const userId = req.user._id;
 
-        const team = await Team.findById(teamId);
+        const team = await Team.findById(teamId)
+            .populate('leader', 'username')
+            .populate({
+                path: 'members.user',
+                select: 'username'
+            });
+
         if (!team) {
             return res.status(404).json({
                 success: false,
@@ -366,36 +426,53 @@ export const leaveTeam = async (req, res) => {
             });
         }
 
-        // Kiểm tra xem người dùng có phải là leader không
-        if (team.leader.toString() === userId.toString()) {
+        // Không cho phép leader rời team
+        if (team.leader._id.toString() === userId.toString()) {
             return res.status(400).json({
                 success: false,
                 message: "Team leader cannot leave the team. Transfer leadership or delete the team instead."
             });
         }
 
-        // Kiểm tra xem người dùng có trong team không
-        const memberIndex = team.members.findIndex(member => member.user.toString() === userId.toString());
+        // Kiểm tra xem người dùng có phải là thành viên không
+        const memberIndex = team.members.findIndex(
+            member => member.user._id.toString() === userId.toString()
+        );
+
         if (memberIndex === -1) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: "You are not a member of this team"
             });
         }
 
+        // Lấy thông tin thành viên trước khi xóa
+        const leavingMember = team.members[memberIndex];
+
         // Xóa thành viên khỏi team
         team.members.splice(memberIndex, 1);
         await team.save();
 
+        // Tạo thông báo cho leader
+        await createNotification({
+            recipientId: team.leader._id,
+            senderId: userId,
+            teamId: team._id,
+            type: 'MEMBER_REMOVED',
+            title: 'Member Left Team',
+            message: `${req.user.username} has left your team "${team.name}"`
+        });
+
         res.status(200).json({
             success: true,
-            message: "Successfully left the team"
+            message: "Successfully left the team",
+            data: team
         });
     } catch (error) {
         console.error('Leave team error:', error);
         res.status(500).json({
             success: false,
-            message: "Error leaving team"
+            message: error.message || "Error leaving team"
         });
     }
 };

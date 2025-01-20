@@ -275,9 +275,9 @@ const CommentSection = ({ taskId, comments: initialComments = [], task }) => {
         {!comments?.length ? (
           <p className="text-center text-gray-500 py-4">No comments yet</p>
         ) : (
-          comments.map((comment) => (
+          comments.filter(comment => comment && comment._id).map((comment) => (
             <CommentItem
-              key={comment?._id}
+              key={comment._id}
               comment={comment}
               onDelete={handleDeleteComment}
               currentUserId={userInfo._id}
@@ -302,8 +302,8 @@ const TaskTeam = ({ createdBy, assignedTo = [] }) => (
         </div>
       </div>
 
-      {assignedTo.map((member, index) => (
-        <div key={index} className='flex gap-4 py-2 items-center border-t border-gray-200'>
+      {assignedTo.map((member) => (
+        <div key={member._id} className='flex gap-4 py-2 items-center border-t border-gray-200'>
           <Avatar username={member?.username} />
           <div className="flex flex-col">
             <span className="text-gray-800 font-medium">{member?.username}</span>

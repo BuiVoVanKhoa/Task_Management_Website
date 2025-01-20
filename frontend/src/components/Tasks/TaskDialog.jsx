@@ -86,37 +86,7 @@ const TaskDialog = ({ isOpen, onClose, task, onSuccess }) => {
     const isTeamMember = task?.assignedTo?.some(member => member._id === authUser?._id);
 
     const handleChange = (field, value) => {
-        if (field === 'status' && !isAdmin) {
-            setPreviousStatus(formData.status);
-            setShowStatusConfirmation(true);
-            return;
-        }
         setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleStatusConfirm = async () => {
-        setFormData(prev => ({ ...prev, status: previousStatus }));
-        setShowStatusConfirmation(false);
-        setPreviousStatus(null);
-    };
-
-    const handleDeleteAttachment = async (url) => {
-        if (!isAdmin) {
-            toast.error('Only task creator can delete attachments');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const newAttachments = formData.attachments.filter(attachment => attachment !== url);
-            setFormData(prev => ({ ...prev, attachments: newAttachments }));
-            await updateTask(task._id, { ...formData, attachments: newAttachments });
-        } catch (error) {
-            console.error('Error deleting attachment:', error);
-            toast.error('Failed to delete attachment');
-        } finally {
-            setLoading(false);
-        }
     };
 
     const handleSubmit = async (e) => {
@@ -143,6 +113,25 @@ const TaskDialog = ({ isOpen, onClose, task, onSuccess }) => {
         } catch (error) {
             console.error('Error updating task:', error);
             toast.error(error.response?.data?.message || 'Failed to update task');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteAttachment = async (url) => {
+        if (!isAdmin) {
+            toast.error('Only task creator can delete attachments');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const newAttachments = formData.attachments.filter(attachment => attachment !== url);
+            setFormData(prev => ({ ...prev, attachments: newAttachments }));
+            await updateTask(task._id, { ...formData, attachments: newAttachments });
+        } catch (error) {
+            console.error('Error deleting attachment:', error);
+            toast.error('Failed to delete attachment');
         } finally {
             setLoading(false);
         }
@@ -375,7 +364,7 @@ const TaskDialog = ({ isOpen, onClose, task, onSuccess }) => {
                                 <button
                                     type="button"
                                     className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-100 dark:hover:bg-blue-800"
-                                    onClick={handleStatusConfirm}
+                                    onClick={() => setShowStatusConfirmation(false)}
                                 >
                                     Send Request
                                 </button>

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { BellIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { HiUser, HiArrowLeftStartOnRectangle } from "react-icons/hi2";
 import ThemeToggle from "./ThemeToggle";
+import NotificationDropdown from './Notifications/NotificationDropdown';
 
 const Navbar = ({ toggleSidebar, themeClasses }) => {
   // Lấy thông tin người dùng và hàm logout từ AuthContext
@@ -64,71 +65,70 @@ const Navbar = ({ toggleSidebar, themeClasses }) => {
         <ThemeToggle />
 
         {/* Nút thông báo */}
-        <button className={`p-2 focus:outline-none ${themeClasses.navbar}`}>
-          <BellIcon className="h-6 w-6" />
-        </button>
-
-        {/* Menu Profile */}
-        <div className="relative">
-          {/* Nút hiển thị menu profile */}
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center space-x-2 focus:outline-none"
-          >
-            {/* Hiển thị avatar nếu có, nếu không hiển thị icon mặc định */}
-            {authUser?.avatarUrl ? (
-              <img
-                src={authUser.avatarUrl}
-                alt={authUser.username}
-                className={`h-8 w-8 rounded-full border-2 ${themeClasses.borders}`}
-              />
-            ) : (
-              <UserCircleIcon className={`h-8 w-8 ${themeClasses.navbar}`} />
-            )}
-            {/* Hiển thị tên người dùng trên desktop */}
-            <span className={`hidden md:block ${themeClasses.navbar}`}>
-              {authUser?.username}
-            </span>
-          </button>
-
-          {/* Dropdown Menu Profile */}
-          {showProfileMenu && (
-            <div
-              className={`absolute right-0 mt-2 w-48 py-2 rounded-md shadow-xl border ${themeClasses.navbar} ${themeClasses.borders}`}
+        <div className="flex items-center gap-2">
+          <NotificationDropdown />
+          {/* Menu Profile */}
+          <div className="relative">
+            {/* Nút hiển thị menu profile */}
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center space-x-2 focus:outline-none"
             >
-              {/* Hiển thị thông tin người dùng trên mobile */}
+              {/* Hiển thị avatar nếu có, nếu không hiển thị icon mặc định */}
+              {authUser?.avatarUrl ? (
+                <img
+                  src={authUser.avatarUrl}
+                  alt={authUser.username}
+                  className={`h-8 w-8 rounded-full border-2 ${themeClasses.borders}`}
+                />
+              ) : (
+                <UserCircleIcon className={`h-8 w-8 ${themeClasses.navbar}`} />
+              )}
+              {/* Hiển thị tên người dùng trên desktop */}
+              <span className={`hidden md:block ${themeClasses.navbar}`}>
+                {authUser?.username}
+              </span>
+            </button>
+
+            {/* Dropdown Menu Profile */}
+            {showProfileMenu && (
               <div
-                className={`px-4 py-2 border-b md:hidden ${themeClasses.borders}`}
+                className={`absolute right-0 mt-2 w-48 py-2 rounded-md shadow-xl border ${themeClasses.navbar} ${themeClasses.borders}`}
               >
-                <p className={`text-sm font-medium ${themeClasses.navbar}`}>
-                  {authUser?.username}
-                </p>
-                <p className="text-sm text-gray-500">{authUser?.email}</p>
+                {/* Hiển thị thông tin người dùng trên mobile */}
+                <div
+                  className={`px-4 py-2 border-b md:hidden ${themeClasses.borders}`}
+                >
+                  <p className={`text-sm font-medium ${themeClasses.navbar}`}>
+                    {authUser?.username}
+                  </p>
+                  <p className="text-sm text-gray-500">{authUser?.email}</p>
+                </div>
+
+                {/* Link đến trang profile */}
+                <Link
+                  to="/profile"
+                  className={`px-4 py-2 text-sm flex items-center ${themeClasses.menuItem.inactive}`}
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  <HiUser className="mr-2" />
+                  Profile
+                </Link>
+
+                {/* Nút đăng xuất */}
+                <button
+                  onClick={() => {
+                    logout();
+                    setShowProfileMenu(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 flex items-center`}
+                >
+                  <HiArrowLeftStartOnRectangle className="mr-2" />
+                  Logout
+                </button>
               </div>
-
-              {/* Link đến trang profile */}
-              <Link
-                to="/profile"
-                className={`px-4 py-2 text-sm flex items-center ${themeClasses.menuItem.inactive}`}
-                onClick={() => setShowProfileMenu(false)}
-              >
-                <HiUser className="mr-2" />
-                Profile
-              </Link>
-
-              {/* Nút đăng xuất */}
-              <button
-                onClick={() => {
-                  logout();
-                  setShowProfileMenu(false);
-                }}
-                className={`w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 flex items-center`}
-              >
-                <HiArrowLeftStartOnRectangle className="mr-2" />
-                Logout
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

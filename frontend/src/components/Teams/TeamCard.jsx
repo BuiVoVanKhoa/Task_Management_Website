@@ -8,7 +8,7 @@ import { TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 import DeleteConfirmDialog from '../DeleteConfirmDialog';
 import EditTeamDialog from './EditTeamDialog';
 
-const TeamCard = (team) => {
+const TeamCard = ({ team }) => {
     const [showCopied, setShowCopied] = useState(false);
     const [imgError, setImgError] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
@@ -26,7 +26,7 @@ const TeamCard = (team) => {
         setCurrentUser(user); // Cập nhật currentUser
     }, []);
 
-    const isTeamLeader = currentUser && team.leader._id === currentUser._id;
+    const isTeamLeader = currentUser && team?.leader?._id === currentUser._id;
 
     const handleRemoveMember = async () => {
         if (!selectedMember) {

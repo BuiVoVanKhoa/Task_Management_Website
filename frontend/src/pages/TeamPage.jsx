@@ -114,23 +114,33 @@ const TeamPage = () => {
           </div>
         </div>
 
-        {/* Teams Grid */}
-        {team && team.length > 0 ? (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {team.map((teamItem) => (
-              <TeamCard key={teamItem._id} {...teamItem} teamLeader={teamItem.leader}  team={team}
-              onDelete={handleDeleteTeam}/>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-            <FaUsers className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No Teams Yet</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Get started by creating a new team or joining an existing one.
-            </p>
-          </div>
-        )}
+        {/* Team Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          {loading ? (
+            <div className="col-span-full text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading teams...</p>
+            </div>
+          ) : error ? (
+            <div className="col-span-full text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <FaUsers className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">Error Loading Teams</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{error}</p>
+            </div>
+          ) : team && team.length > 0 ? (
+            team.map((teamItem) => (
+              <TeamCard key={teamItem._id} team={teamItem} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <FaUsers className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No Teams Yet</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Get started by creating a new team or joining an existing one.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Create Team Modal */}
         {showCreateModal && (
@@ -242,8 +252,5 @@ const TeamPage = () => {
     </div>
   );
 };
-
-// Team Card
-<TeamCard />
 
 export default TeamPage;

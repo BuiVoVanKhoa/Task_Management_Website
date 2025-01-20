@@ -6,7 +6,7 @@ const AvatarSelector = ({ currentAvatar, onSelect, onClose }) => {
 
   useEffect(() => {
     // Tạo mảng chứa 33 avatar từ avt_0 đến avt_32
-    const avatarList = Array.from({ length: 33 }, (_, i) => `/avt_profile/avt_${i}.jpg`);
+    const avatarList = Array.from({ length: 41 }, (_, i) => `/avt_profile/avt_${i}.jpg`);
     setAvatars(avatarList);
   }, []);
 

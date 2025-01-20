@@ -10,6 +10,7 @@ import userRouter from "./router/user.router.js";
 import taskRouter from "./router/task.router.js";
 import teamRouter from "./router/team.router.js";
 import dashboardRouter from "./router/dashboard.router.js";
+import notificationRouter from "./router/notification.router.js";
 
 // Cấu hình biến môi trường
 dotenv.config();
@@ -33,6 +34,7 @@ app.use("/api/auth", userRouter); // Xác thực và quản lý user
 app.use("/api/tasks", taskRouter); // Quản lý tasks
 app.use("/api/teams", teamRouter); // Quản lý teams
 app.use("/api/dashboard", dashboardRouter); // Quản lý dashboard
+app.use("/api/notifications", notificationRouter); // Quản lý thông báo
 
 // Middleware xử lý lỗi toàn cục
 app.use(errorHandler);
