@@ -54,7 +54,7 @@ const ListView = ({ tasks, refetch }) => {
 
     // Kiểm tra người dùng hiện tại có quyền xóa nhiệm vụ không 
     const canDeleteTask = (task) => {
-        return authUser && (task.createdBy._id === authUser._id);
+        return authUser && task?.createdBy && (task.createdBy._id === authUser._id);
     };
 
     const handleEdit = (task) => {

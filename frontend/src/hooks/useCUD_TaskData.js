@@ -17,9 +17,9 @@ const useCUD_TaskData = () => {
     }
   };
 
-  const updateTask = async (id, data) => {
+  const updateTask = async (_id, data) => {
     try {
-      const response = await axios.put(`/api/tasks/${id}`, data, {
+      const response = await axios.put(`/api/tasks/${_id}`, data, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
@@ -32,9 +32,9 @@ const useCUD_TaskData = () => {
     }
   };
 
-  const deleteTask = async (id) => {
+  const deleteTask = async (_id) => {
     try {
-      const response = await axios.delete(`/api/tasks/${id}`, {
+      const response = await axios.delete(`/api/tasks/${_id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },

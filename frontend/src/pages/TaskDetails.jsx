@@ -366,11 +366,11 @@ const ImageGallery = ({ images = [], onImageClick }) => {
 
 // Hiển thị chi tiết task
 const TaskDetails = () => {
-  const { id } = useParams();
+  const { _id } = useParams();
   const navigate = useNavigate();
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const { task, error, loading } = useGetTaskById(id, axiosInstance);
+  const { task, error, loading } = useGetTaskById(_id, axiosInstance);
 
   if (loading) return <div className="flex items-center justify-center p-8">Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -418,7 +418,7 @@ const TaskDetails = () => {
           <div className='hidden lg:block w-px bg-gray-200 mx-0'></div>
 
           <div className='w-full lg:w-1/2 p-6 border-t lg:border-t-0'>
-            <CommentSection taskId={id} comments={task?.comments} task={task} />
+            <CommentSection taskId={_id} comments={task?.comments} task={task} />
           </div>
         </div>
       </div>
