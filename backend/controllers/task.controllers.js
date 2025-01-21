@@ -129,10 +129,10 @@ export const getUserTasks = async (req, res) => {
 // Lấy task của user theo IdTask
 export const getTaskById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { _id } = req.params;
 
         // Tìm task và populate đầy đủ thông tin cần thiết
-        const task = await Task.findById(id)
+        const task = await Task.findById(_id)
             .populate("assignedTo", "username avatarUrl _id")
             .populate("createdBy", "username _id")
             .populate("teamId", "name members")
@@ -140,6 +140,8 @@ export const getTaskById = async (req, res) => {
                 path: "comments.createdBy",
                 select: "username avatar _id",
             });
+
+        console.log('Task details:', JSON.stringify(task, null, 2));
 
         if (!task) {
             return res.status(404).json({
@@ -149,12 +151,19 @@ export const getTaskById = async (req, res) => {
         }
 
         // Kiểm tra quyền truy cập
-        const isCreator = task.createdBy._id.toString() === req.user._id.toString();
-        const isAssigned = task.assignedTo.some(
-            (user) => user._id.toString() === req.user._id.toString()
-        );
+        const isCreator = task.createdBy && task.createdBy._id 
+            ? task.createdBy._id.toString() === req.user._id.toString() 
+            : false;
+        const isAssigned = task.assignedTo && task.assignedTo.length > 0 
+            ? task.assignedTo.some(
+                (user) => user && user._id 
+                    ? user._id.toString() === req.user._id.toString() 
+                    : false
+            )
+            : false;
         const isInTeam =
             task.teamId &&
+            task.teamId.members &&
             task.teamId.members.some(
                 (memberId) => memberId.toString() === req.user._id.toString()
             );
@@ -203,11 +212,17 @@ export const updateTaskStatus = async (req, res) => {
         }
 
         // Kiểm tra quyền cập nhật
-        const isAssigned = task.assignedTo.some(user => 
-            user._id.toString() === userId.toString()
-        );
+        const isAssigned = task.assignedTo && task.assignedTo.length > 0 
+            ? task.assignedTo.some(user => 
+                user && user._id 
+                    ? user._id.toString() === userId.toString() 
+                    : false
+            )
+            : false;
 
-        if (!isAssigned && task.createdBy._id.toString() !== userId.toString()) {
+        if (!isAssigned && task.createdBy && task.createdBy._id 
+            ? task.createdBy._id.toString() !== userId.toString() 
+            : true) {
             return res.status(403).json({
                 success: false,
                 message: "Not authorized to update this task",
@@ -219,7 +234,9 @@ export const updateTaskStatus = async (req, res) => {
         await task.save();
 
         // Tạo thông báo cho người tạo task nếu người cập nhật không phải là người tạo
-        if (task.createdBy._id.toString() !== userId.toString()) {
+        if (task.createdBy && task.createdBy._id 
+            ? task.createdBy._id.toString() !== userId.toString() 
+            : true) {
             await createNotification({
                 recipientId: task.createdBy._id,
                 senderId: userId,
@@ -285,14 +302,16 @@ export const addTaskComment = async (req, res) => {
             .populate('createdBy', 'username');
 
         // Tạo danh sách người nhận thông báo (người được gán và người tạo task)
-        const notificationRecipients = [...task.assignedTo];
-        if (!notificationRecipients.includes(task.createdBy)) {
+        const notificationRecipients = task.assignedTo && task.assignedTo.length > 0 
+            ? [...task.assignedTo] 
+            : [];
+        if (task.createdBy && !notificationRecipients.includes(task.createdBy)) {
             notificationRecipients.push(task.createdBy);
         }
 
         // Loại bỏ người comment khỏi danh sách nhận thông báo
         const filteredRecipients = notificationRecipients.filter(
-            id => id.toString() !== userId.toString()
+            id => id && id.toString() !== userId.toString()
         );
 
         // Tạo thông báo cho từng người nhận
@@ -350,7 +369,7 @@ export const deleteTaskComment = async (req, res) => {
         }
 
         // Kiểm tra xem người dùng hiện tại có phải là người tạo comment không
-        if (comment.createdBy.toString() !== userId.toString()) {
+        if (comment.createdBy && comment.createdBy.toString() !== userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Not authorized to delete this comment",
@@ -392,7 +411,7 @@ export const deleteTask = async (req, res) => {
         }
 
         // Chỉ người tạo mới có thể xóa
-        if (task.createdBy.toString() !== req.user._id.toString()) {
+        if (task.createdBy && task.createdBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Not authorized to delete this task",

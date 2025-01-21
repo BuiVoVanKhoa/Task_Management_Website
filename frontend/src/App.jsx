@@ -34,7 +34,7 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
-                <Route path="/tasks/:id" element={<TaskDetails />} />
+                <Route path="/tasks/:_id" element={<TaskDetails />} />
                 <Route path="/teams" element={<TeamPage />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>

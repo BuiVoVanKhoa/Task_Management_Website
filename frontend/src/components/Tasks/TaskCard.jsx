@@ -63,11 +63,11 @@ const TaskCard = ({ task, refetch, onDeleteSuccess }) => {
     };
 
     const canDeleteTask = (task) => {
-        return authUser && (task.createdBy._id === authUser._id);
+        return authUser && task?.createdBy && (task.createdBy._id === authUser._id);
     };
 
     const handleViewDetails = () => {
-        navigate(`/tasks/${task._id}`);
+        navigate(`/tasks/${task?._id}`);
         setShowMenu(false);
     };
 

@@ -18,9 +18,9 @@ const router = express.Router();
 router.use(auth);
 
 // Cập nhật thông tin task
-router.put("/:taskId", async (req, res) => {
+router.put("/:_id", async (req, res) => {
   try {
-    const taskId = req.params.taskId;
+    const taskId = req.params._id;
     const updates = req.body;
     const userId = req.user._id;
 
@@ -126,18 +126,18 @@ router.post("/create", createTask);
 router.get("/user-tasks", getUserTasks);
 
 // Lấy tasks của user theo IdTask
-router.get("/:id", getTaskById);
+router.get("/:_id", getTaskById);
 
 // Cập nhật trạng thái của task
-router.patch("/:taskId/status", updateTaskStatus);
+router.patch("/:_id/status", updateTaskStatus);
 
 // Thêm comment mới vào task
-router.post("/:taskId/comment", addTaskComment);
+router.post("/:_id/comment", addTaskComment);
 
 // Xóa task
-router.delete("/:taskId", deleteTask);
+router.delete("/:_id", deleteTask);
 
 // Xóa comment khỏi task
-router.delete("/:taskId/comment/:commentId", deleteTaskComment);
+router.delete("/:_id/comment/:commentId", deleteTaskComment);
 
 export default router;
