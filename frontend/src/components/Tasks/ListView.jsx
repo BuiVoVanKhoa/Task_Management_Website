@@ -54,7 +54,11 @@ const ListView = ({ tasks, refetch }) => {
 
     // Kiểm tra người dùng hiện tại có quyền xóa nhiệm vụ không 
     const canDeleteTask = (task) => {
-        return authUser && task?.createdBy && (task.createdBy._id === authUser._id);
+        if (!authUser || !task) return false;
+
+        // Xử lý trường hợp createdBy là object hoặc string
+        const createdById = task.createdBy?._id || task.createdBy;
+        return createdById === authUser._id;
     };
 
     const handleEdit = (task) => {
@@ -211,7 +215,11 @@ const ListView = ({ tasks, refetch }) => {
                 isOpen={!!deletingTask}
                 onClose={() => setDeletingTask(null)}
                 onConfirm={handleDelete}
-                title={deletingTask?.title}
+                title="Delete Task"
+                message={`Are you sure you want to delete the task "${deletingTask?.title}"? This action will:
+• Permanently remove the task
+• Delete all associated comments
+• Cannot be undone`}
                 isDeleting={isDeleting}
             />
         </div>

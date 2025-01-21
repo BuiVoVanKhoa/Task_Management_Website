@@ -275,9 +275,9 @@ const CommentSection = ({ taskId, comments: initialComments = [], task }) => {
         {!comments?.length ? (
           <p className="text-center text-gray-500 py-4">No comments yet</p>
         ) : (
-          comments.filter(comment => comment && comment._id).map((comment) => (
+          comments.map((comment) => (
             <CommentItem
-              key={comment._id}
+              key={comment?._id}
               comment={comment}
               onDelete={handleDeleteComment}
               currentUserId={userInfo._id}
@@ -302,8 +302,8 @@ const TaskTeam = ({ createdBy, assignedTo = [] }) => (
         </div>
       </div>
 
-      {assignedTo.map((member) => (
-        <div key={member._id} className='flex gap-4 py-2 items-center border-t border-gray-200'>
+      {assignedTo.map((member, index) => (
+        <div key={index} className='flex gap-4 py-2 items-center border-t border-gray-200'>
           <Avatar username={member?.username} />
           <div className="flex flex-col">
             <span className="text-gray-800 font-medium">{member?.username}</span>
@@ -366,11 +366,11 @@ const ImageGallery = ({ images = [], onImageClick }) => {
 
 // Hiển thị chi tiết task
 const TaskDetails = () => {
-  const { _id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const { task, error, loading } = useGetTaskById(_id, axiosInstance);
+  const { task, error, loading } = useGetTaskById(id, axiosInstance);
 
   if (loading) return <div className="flex items-center justify-center p-8">Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -418,7 +418,7 @@ const TaskDetails = () => {
           <div className='hidden lg:block w-px bg-gray-200 mx-0'></div>
 
           <div className='w-full lg:w-1/2 p-6 border-t lg:border-t-0'>
-            <CommentSection taskId={_id} comments={task?.comments} task={task} />
+            <CommentSection taskId={id} comments={task?.comments} task={task} />
           </div>
         </div>
       </div>

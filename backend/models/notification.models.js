@@ -18,7 +18,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['TEAM_UPDATE', 'TASK_ASSIGNED', 'TASK_STATUS_UPDATED', 'TASK_UPDATE', 'TASK_COMMENT', 'MEMBER_ADDED', 'MEMBER_REMOVED'],
+        enum: ['TEAM_UPDATE', 'TASK_ASSIGNED', 'TASK_STATUS_UPDATED', 'TASK_UPDATE', 'MEMBER_ADDED', 'MEMBER_REMOVED'],
         required: true
     },
     title: {

@@ -60,7 +60,6 @@ const NotificationDropdown = () => {
             case 'TASK_ASSIGNED':
             case 'TASK_STATUS_UPDATED':
             case 'TASK_UPDATE':
-            case 'TASK_COMMENT':
                 return 'TASK';
             case 'TEAM_UPDATE':
             case 'MEMBER_ADDED':
@@ -86,8 +85,6 @@ const NotificationDropdown = () => {
                 return '✅';
             case 'TASK_UPDATE':
                 return '✏️';
-            case 'TASK_COMMENT':
-                return '💬';
             case 'MEMBER_ADDED':
                 return '👥';
             case 'MEMBER_REMOVED':

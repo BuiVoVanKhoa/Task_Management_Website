@@ -18,9 +18,9 @@ const router = express.Router();
 router.use(auth);
 
 // Cập nhật thông tin task
-router.put("/:_id", async (req, res) => {
+router.put("/:taskId", async (req, res) => {
   try {
-    const taskId = req.params._id;
+    const taskId = req.params.taskId;
     const updates = req.body;
     const userId = req.user._id;
 
@@ -119,25 +119,25 @@ router.put("/:_id", async (req, res) => {
   }
 });
 
+// Lấy danh sách task của user
+router.get("/user-tasks", getUserTasks);
+
+// Lấy chi tiết task theo ID
+router.get("/:taskId", getTaskById);
+
 // Tạo task mới với thông tin từ request body
 router.post("/create", createTask);
 
-// Lấy tất cả tasks của user hiện tại
-router.get("/user-tasks", getUserTasks);
-
-// Lấy tasks của user theo IdTask
-router.get("/:_id", getTaskById);
-
 // Cập nhật trạng thái của task
-router.patch("/:_id/status", updateTaskStatus);
+router.patch("/:taskId/status", updateTaskStatus);
 
 // Thêm comment mới vào task
-router.post("/:_id/comment", addTaskComment);
+router.post("/:taskId/comment", addTaskComment);
 
 // Xóa task
-router.delete("/:_id", deleteTask);
+router.delete("/:taskId", deleteTask);
 
 // Xóa comment khỏi task
-router.delete("/:_id/comment/:commentId", deleteTaskComment);
+router.delete("/:taskId/comment/:commentId", deleteTaskComment);
 
 export default router;

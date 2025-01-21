@@ -325,7 +325,11 @@ const TeamCard = ({ team }) => {
                 isOpen={showDeleteTeamDialog}
                 onClose={() => setShowDeleteTeamDialog(false)}
                 onConfirm={handleDeleteTeam}
-                title={team.name}
+                title="Delete Team"
+                message={`Are you sure you want to delete the team "${team.name}"? This action will:
+• Remove all team members
+• Delete all team tasks
+• Cannot be undone`}
                 isDeleting={loading}
             />
 

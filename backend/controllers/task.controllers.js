@@ -129,19 +129,33 @@ export const getUserTasks = async (req, res) => {
 // Lấy task của user theo IdTask
 export const getTaskById = async (req, res) => {
     try {
-        const { _id } = req.params;
+        const { taskId } = req.params;
 
-        // Tìm task và populate đầy đủ thông tin cần thiết
-        const task = await Task.findById(_id)
-            .populate("assignedTo", "username avatarUrl _id")
-            .populate("createdBy", "username _id")
-            .populate("teamId", "name members")
-            .populate({
-                path: "comments.createdBy",
-                select: "username avatar _id",
+        // Kiểm tra taskId có hợp lệ không
+        if (!taskId || typeof taskId !== 'string' || taskId.length !== 24) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid task ID",
             });
+        }
 
-        console.log('Task details:', JSON.stringify(task, null, 2));
+        const task = await Task.findById(taskId)
+            .populate({
+                path: "createdBy",
+                select: "username avatar _id",
+            })
+            .populate({
+                path: "assignedTo",
+                select: "username avatar _id",
+            })
+            .populate({
+                path: "teamId",
+                select: "name members",
+                populate: {
+                    path: "members",
+                    select: "_id"
+                }
+            });
 
         if (!task) {
             return res.status(404).json({
@@ -151,19 +165,16 @@ export const getTaskById = async (req, res) => {
         }
 
         // Kiểm tra quyền truy cập
-        const isCreator = task.createdBy && task.createdBy._id 
-            ? task.createdBy._id.toString() === req.user._id.toString() 
-            : false;
-        const isAssigned = task.assignedTo && task.assignedTo.length > 0 
-            ? task.assignedTo.some(
-                (user) => user && user._id 
-                    ? user._id.toString() === req.user._id.toString() 
-                    : false
-            )
-            : false;
-        const isInTeam =
-            task.teamId &&
-            task.teamId.members &&
+        const isCreator = task.createdBy && 
+            task.createdBy._id && 
+            task.createdBy._id.toString() === req.user._id.toString();
+        
+        const isAssigned = task.assignedTo && 
+            task.assignedTo.some(
+                (user) => user._id.toString() === req.user._id.toString()
+            );
+        
+        const isInTeam = task.teamId && 
             task.teamId.members.some(
                 (memberId) => memberId.toString() === req.user._id.toString()
             );
@@ -182,6 +193,15 @@ export const getTaskById = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getTaskById:", error);
+        
+        // Xử lý lỗi cast ObjectId
+        if (error.name === 'CastError' && error.kind === 'ObjectId') {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid task ID format",
+            });
+        }
+
         res.status(500).json({
             success: false,
             message: error.message,
@@ -212,17 +232,11 @@ export const updateTaskStatus = async (req, res) => {
         }
 
         // Kiểm tra quyền cập nhật
-        const isAssigned = task.assignedTo && task.assignedTo.length > 0 
-            ? task.assignedTo.some(user => 
-                user && user._id 
-                    ? user._id.toString() === userId.toString() 
-                    : false
-            )
-            : false;
+        const isAssigned = task.assignedTo.some(user => 
+            user._id.toString() === userId.toString()
+        );
 
-        if (!isAssigned && task.createdBy && task.createdBy._id 
-            ? task.createdBy._id.toString() !== userId.toString() 
-            : true) {
+        if (!isAssigned && task.createdBy._id.toString() !== userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Not authorized to update this task",
@@ -234,9 +248,7 @@ export const updateTaskStatus = async (req, res) => {
         await task.save();
 
         // Tạo thông báo cho người tạo task nếu người cập nhật không phải là người tạo
-        if (task.createdBy && task.createdBy._id 
-            ? task.createdBy._id.toString() !== userId.toString() 
-            : true) {
+        if (task.createdBy._id.toString() !== userId.toString()) {
             await createNotification({
                 recipientId: task.createdBy._id,
                 senderId: userId,
@@ -270,73 +282,64 @@ export const addTaskComment = async (req, res) => {
         const { text } = req.body;
         const userId = req.user._id;
 
-        // Validate input
         if (!text || !text.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Comment text is required"
+                message: "Comment text is required",
             });
         }
 
-        // Find task and add comment
         const task = await Task.findById(taskId);
         if (!task) {
             return res.status(404).json({
                 success: false,
-                message: "Task not found"
+                message: "Task not found",
             });
         }
 
-        // Add new comment
-        task.comments.push({
-            text,
-            createdBy: userId
-        });
+        // Kiểm tra xem user có phải là người được assign hoặc người tạo task không
+        const isAssigned = task.assignedTo.some(
+            (id) => id.toString() === userId.toString()
+        );
+        const isCreator = task.createdBy.toString() === userId.toString();
 
+        if (!isAssigned && !isCreator) {
+            return res.status(403).json({
+                success: false,
+                message: "Only assigned users or task creator can comment",
+            });
+        }
+
+        // Thêm bình luận mới với tham chiếu người dùng
+        const newComment = {
+            text: text.trim(),
+            createdBy: userId,
+            createdAt: new Date(),
+        };
+
+        task.comments.push(newComment);
         await task.save();
 
-        // Populate comment author info
-        const populatedTask = await Task.findById(taskId)
-            .populate('comments.createdBy', 'username avatar')
-            .populate('assignedTo', 'username')
-            .populate('createdBy', 'username');
+        // Điền trường createdBy trước khi gửi phản hồi
+        await task.populate([
+            {
+                path: "comments.createdBy",
+                select: "username avatar",
+            },
+        ]);
 
-        // Tạo danh sách người nhận thông báo (người được gán và người tạo task)
-        const notificationRecipients = task.assignedTo && task.assignedTo.length > 0 
-            ? [...task.assignedTo] 
-            : [];
-        if (task.createdBy && !notificationRecipients.includes(task.createdBy)) {
-            notificationRecipients.push(task.createdBy);
-        }
-
-        // Loại bỏ người comment khỏi danh sách nhận thông báo
-        const filteredRecipients = notificationRecipients.filter(
-            id => id && id.toString() !== userId.toString()
-        );
-
-        // Tạo thông báo cho từng người nhận
-        await Promise.all(filteredRecipients.map(recipientId => {
-            return createNotification({
-                recipientId: recipientId,
-                senderId: userId,
-                type: 'TASK_COMMENT',
-                title: `New Comment on Task "${task.title}"`,
-                message: `${req.user.username} commented: "${text.length > 50 ? text.substring(0, 47) + '...' : text}"`,
-                relatedTask: taskId
-            });
-        }));
+        const savedComment = task.comments[task.comments.length - 1];
 
         res.status(200).json({
             success: true,
             message: "Comment added successfully",
-            task: populatedTask
+            comment: savedComment,
         });
     } catch (error) {
         console.error("Error in addTaskComment:", error);
         res.status(500).json({
             success: false,
-            message: "Error adding comment",
-            error: error.message
+            message: "Failed to add comment",
         });
     }
 };
@@ -369,7 +372,7 @@ export const deleteTaskComment = async (req, res) => {
         }
 
         // Kiểm tra xem người dùng hiện tại có phải là người tạo comment không
-        if (comment.createdBy && comment.createdBy.toString() !== userId.toString()) {
+        if (comment.createdBy.toString() !== userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Not authorized to delete this comment",
@@ -411,7 +414,7 @@ export const deleteTask = async (req, res) => {
         }
 
         // Chỉ người tạo mới có thể xóa
-        if (task.createdBy && task.createdBy.toString() !== req.user._id.toString()) {
+        if (task.createdBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Not authorized to delete this task",

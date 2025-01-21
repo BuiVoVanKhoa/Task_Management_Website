@@ -41,7 +41,10 @@ const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, isDel
                 </div>
 
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p 
+                    className="text-sm text-gray-500 dark:text-gray-400"
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
                     {message}
                   </p>
                 </div>

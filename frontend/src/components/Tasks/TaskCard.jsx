@@ -39,6 +39,9 @@ const TaskCard = ({ task, refetch, onDeleteSuccess }) => {
     const navigate = useNavigate();
 
     const handleDelete = async () => {
+        console.log('Current task:', task);
+        console.log('Current authUser:', authUser);
+
         if (!canDeleteTask(task)) {
             toast.error("You don't have permission to delete this task");
             return;
@@ -63,11 +66,17 @@ const TaskCard = ({ task, refetch, onDeleteSuccess }) => {
     };
 
     const canDeleteTask = (task) => {
-        return authUser && task?.createdBy && (task.createdBy._id === authUser._id);
+        console.log('Task for delete check:', task);
+        return authUser && 
+               task && 
+               task.createdBy && 
+               (typeof task.createdBy === 'object' ? 
+                   task.createdBy._id === authUser._id : 
+                   task.createdBy === authUser._id);
     };
 
     const handleViewDetails = () => {
-        navigate(`/tasks/${task?._id}`);
+        navigate(`/tasks/${task._id}`);
         setShowMenu(false);
     };
 
@@ -229,7 +238,11 @@ const TaskCard = ({ task, refetch, onDeleteSuccess }) => {
                 isOpen={showDeleteDialog}
                 onClose={() => setShowDeleteDialog(false)}
                 onConfirm={handleDelete}
-                title={task.title}
+                title="Delete Task"
+                message={`Are you sure you want to delete the task "${task.title}"? This action will:
+• Permanently remove the task
+• Delete all associated comments
+• Cannot be undone`}
                 isDeleting={isDeleting}
             />
         </div>
