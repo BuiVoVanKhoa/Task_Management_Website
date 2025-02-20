@@ -27,19 +27,14 @@ A full-stack web application for managing tasks and team collaboration.
 
 ## Development
 
-Run both frontend and backend in development mode:
+Run only backend:
 ```bash
 npm run dev
 ```
 
-Run only backend:
-```bash
-npm run server
-```
-
 Run only frontend:
 ```bash
-npm run client
+npm run dev
 ```
 
 ## Production
